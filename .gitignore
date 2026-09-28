@@ -1,0 +1,25 @@
+# Python & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+ENV/
+
+# Jupyter Notebook Checkpoints
+.ipynb_checkpoints/
+
+# Raw and large downloadable data archives (reproduced via src/download.py & src/qc.py)
+data/raw/
+data/processed/gse226189_raw_counts.csv
+data/processed/gse226189_log2_cpm.csv
+data/processed/gse226189_log2_cpm_symbols.csv
+data/processed/gse226189_filtered_counts.csv
+
+# Keep metadata, GSE38308 clean expression, tables, figures, notebooks, src, and app
+!data/metadata/
+!data/processed/gse38308_expression_symbols.csv
+
+# macOS
+.DS_Store
