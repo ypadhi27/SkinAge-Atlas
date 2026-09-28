@@ -4,17 +4,17 @@
 [![Python 3.11](https://img.shields.io/badge/Python-3.11-brightgreen.svg)](https://www.python.org/)
 [![Reproducibility](https://img.shields.io/badge/Reproducibility-Verified%20GEO%20Data-orange.svg)](https://www.ncbi.nlm.nih.gov/geo/)
 
-> **Research Prototype & Scientific Disclaimer:** All findings presented in this repository represent transcriptomic and statistical associations, not causal biological claims or clinical diagnostic tools. This project is built strictly for scientific research and academic evaluation (MSc Bioinformatics graduate portfolio for PhD and industry positions in Sweden and Norway). It carries no claims of anti-ageing efficacy or therapeutic cosmetic benefit.
+> **Scientific & Engineering Disclaimer:** All findings presented in this repository represent computational transcriptomic and statistical associations, not causal biological claims or clinical diagnostic tools. This project is built as an industry-grade bioinformatics software engineering and translational discovery portfolio (demonstrating reproducible end-to-end pipelines, statistical modeling, cross-cohort machine learning, and interactive analytics dashboards). It carries no claims of anti-ageing efficacy or therapeutic cosmetic benefit.
 
 ---
 
 ## 📖 Abstract
 
-Human skin ageing is driven by an interplay between cell-autonomous chronological senescence and extrinsic environmental stressors, predominantly solar ultraviolet (UV) radiation. While high-dimensional omics profiles have catalogued age-associated transcriptomic changes, cross-cohort generalizability—whether a gene signature discovered in one cohort transfers accurately to a completely separate clinical cohort—remains a fundamental challenge in computational biology.
+Human skin ageing is driven by an interplay between cell-autonomous chronological senescence and extrinsic environmental stressors, predominantly solar ultraviolet (UV) radiation. While high-dimensional omics profiles have catalogued age-associated transcriptomic changes, cross-cohort generalizability—whether a gene signature discovered in one cohort transfers accurately to a completely separate clinical cohort—remains a fundamental challenge in computational biology and translational drug target discovery.
 
 In this study, we present **SkinAge Atlas**, an end-to-end, leak-free, reproducible computational framework written in Python. Using RNA-seq profiles of primary dermal fibroblasts across 82 healthy human donors aged 22 to 89 years (**GSE226189**; 35 females, 47 males), we model gene expression against continuous chronological age while adjusting for sex. We perform Gene Set Enrichment Analysis (GSEA) across Hallmark and Reactome pathways, revealing robust upregulation of the Senescence-Associated Secretory Phenotype (`Protein Secretion`, $\text{NES} = +2.37$, $\text{FDR} < 0.001$) and extracellular matrix reorganization (`Epithelial Mesenchymal Transition`, $\text{NES} = +1.60$, $\text{FDR} = 0.042$), accompanied by significant downregulation of lipid barrier programs (`Cholesterol Homeostasis`, $\text{NES} = -1.69$, $\text{FDR} = 0.028$) and regenerative priming (`Wnt-beta Catenin Signaling`, $\text{NES} = -1.44$).
 
-We contrast intrinsic chronological ageing with extrinsic photoaging using an independent cohort of 21 biological donors (**GSE38308**; 42 microarray samples) with intra-individual matched pre-auricular (sun-exposed) and post-auricular (sun-protected) facial skin biopsies, identifying **1,269 significant photoaging genes** ($\text{FDR} < 0.05$). Finally, we train a regularized **Elastic Net regression age-predictor** on the RNA-seq discovery cohort with strictly leak-free 5-fold cross-validation. While the model achieves strong internal performance ($\text{MAE} = 10.67\text{ years}$, Pearson $r = 0.706$, $p = 1.29 \times 10^{-13}$, $R^2 = 0.495$ vs baseline MAE of 16.52 years), it fails to transfer when evaluated directly on the independent whole-skin microarray cohort ($\text{MAE} = 48.85\text{ years}$). We provide a rigorous, transparent breakdown of the technical and biological drivers of this cross-platform discrepancy—highlighting cell-type composition dilution and platform dynamic range mismatch—and formulate a multi-omics deconvolution roadmap as a prospective PhD research proposal.
+We contrast intrinsic chronological ageing with extrinsic photoaging using an independent cohort of 21 biological donors (**GSE38308**; 42 microarray samples) with intra-individual matched pre-auricular (sun-exposed) and post-auricular (sun-protected) facial skin biopsies, identifying **1,269 significant photoaging genes** ($\text{FDR} < 0.05$). Finally, we train a regularized **Elastic Net regression age-predictor** on the RNA-seq discovery cohort with strictly leak-free 5-fold cross-validation. While the model achieves strong internal performance ($\text{MAE} = 10.67\text{ years}$, Pearson $r = 0.706$, $p = 1.29 \times 10^{-13}$, $R^2 = 0.495$ vs baseline MAE of 16.52 years), it fails to transfer when evaluated directly on the independent whole-skin microarray cohort ($\text{MAE} = 48.85\text{ years}$). We provide a rigorous, transparent breakdown of the technical and biological drivers of this cross-platform discrepancy—highlighting cell-type composition dilution and platform dynamic range mismatch—and formulate a multi-omics deconvolution and cloud deployment roadmap for production biomarker pipelines.
 
 ---
 
@@ -142,16 +142,18 @@ GSE226189 demonstrated coordinated pathway-level shifts: marked activation of `P
 
 ---
 
-## 🚀 What I Would Do Next (PhD Proposal Seed)
+## 🚀 Production Scaling & Translational Discovery Roadmap
 
-This project serves as the foundational preliminary data for a doctoral research proposal focused on **cross-modal and single-cell deconvolution of human skin aging**:
+This modular framework is structured for rapid deployment into clinical bioinformatics pipelines, target discovery screening, and dermatology biomarker development:
 
-1. **Cell-Type Specific Deconvolution using scRNA-seq:**
-   * Integrate single-cell RNA sequencing references (e.g., Tabula Sapiens, Human Skin Cell Atlas) using tools such as MuSiC or Scaden. By estimating cell-type proportions from bulk biopsies, we can train cell-type-specific clocks that isolate fibroblast age drift from epidermal keratinization changes.
+1. **Cell-Type Specific Deconvolution using scRNA-seq References:**
+   * Integrate single-cell RNA sequencing atlases (Tabula Sapiens, Human Skin Cell Atlas) using reference-based deconvolution (MuSiC, Scaden, BayesPrism). By estimating patient cell-type proportions from whole-skin bulk biopsies, we can isolate dermal fibroblast-specific senescence drift from epidermal differentiation programs.
 2. **Multi-Omics Epigenetic Integration:**
-   * Combine transcriptomic signatures with DNA methylation arrays (Illumina MethylationEPIC) to assess discordance between the Horvath epigenetic clock and the transcriptomic clock.
-3. **Nordic Cohort Validation (SCAPIS / UK Biobank / GTEx):**
-   * Apply this validated framework to population cohorts with high-latitude ultraviolet variation (e.g., Swedish SCAPIS cohort, Norwegian HUNT study) to quantify how seasonal sun exposure modulates biological aging clocks.
+   * Combine transcriptomic signatures with DNA methylation profiling (Illumina MethylationEPIC) to assess discordance between Horvath / GrimAge DNAm clocks and transcriptomic aging rates.
+3. **Nordic Biobank & Population Cohort Validation (SCAPIS / HUNT / UK Biobank):**
+   * Deploy this validated pipeline onto population biobanks with high-latitude ultraviolet variation (e.g., Swedish SCAPIS cohort, Norwegian HUNT study) to quantify how extreme seasonal sun-exposure cycles impact skin biological ageing.
+4. **Cloud & Nextflow Pipeline Containerization:**
+   * Package all ingestion, normalization, DE, and GSEA modules into a reproducible Nextflow / Snakemake workflow with Docker / Singularity containers for automated execution on AWS Batch or Google Cloud Life Sciences.
 
 ---
 
@@ -159,7 +161,7 @@ This project serves as the foundational preliminary data for a doctoral research
 
 ### 1. Clone the Repository & Set Up Virtual Environment
 ```bash
-git clone https://github.com/your-username/SkinAge-Atlas.git
+git clone https://github.com/ypadhi27/SkinAge-Atlas.git
 cd SkinAge-Atlas
 
 # Create and activate Python 3.11 virtual environment
