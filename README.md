@@ -85,6 +85,26 @@ All numbers below were produced by running the codebase directly:
 * **Outlier Analysis:** Only 1 sample flagged at $|z| > 3.0$ in mean Spearman correlation, which was retained with documented rationale.
 * **GSE38308 Matrix:** 11,946 gene symbols across 42 samples (21 matched pairs from 21 unique female donors).
 
+<p align="center">
+  <img src="results/figures/fig1_gse226189_age_and_library_qc.png" width="820" alt="Figure 1: GSE226189 Age and Library QC" /><br/>
+  <em><b>Figure 1:</b> Donor chronological age distribution (22–89 years) and sequencing depth quality control for GSE226189 (Illumina NovaSeq 6000 RNA-seq, N=82).</em>
+</p>
+
+<p align="center">
+  <img src="results/figures/fig2_gse226189_pca.png" width="820" alt="Figure 2: GSE226189 PCA" /><br/>
+  <em><b>Figure 2:</b> Principal Component Analysis (PCA) of normalized log2-CPM profiles colored by chronological age gradient and stratified by donor sex.</em>
+</p>
+
+<p align="center">
+  <img src="results/figures/fig3_gse226189_correlation_heatmap.png" width="750" alt="Figure 3: GSE226189 Correlation Heatmap" /><br/>
+  <em><b>Figure 3:</b> Sample-to-sample pairwise Spearman correlation matrix across all 82 primary dermal fibroblast donors, confirming high intra-cohort consistency.</em>
+</p>
+
+<p align="center">
+  <img src="results/figures/fig4_gse38308_qc_and_pca.png" width="820" alt="Figure 4: GSE38308 QC and Paired PCA" /><br/>
+  <em><b>Figure 4:</b> Quality control probe intensity distributions and paired PCA trajectories for GSE38308 (Illumina HumanWG-6 v3.0 microarray, N=42; 21 matched pre- vs post-auricular facial biopsies).</em>
+</p>
+
 ### 2. Differential Expression
 * **Chronological Ageing (GSE226189):**
   * Tested genes: 20,798.
@@ -95,11 +115,41 @@ All numbers below were produced by running the codebase directly:
   * Tested genes: 11,946.
   * Significant photoaging genes ($\text{FDR} < 0.05, |\log_2\text{FC}| > 0.15$): **1,269 genes** (625 upregulated in sun-exposed, 644 upregulated in sun-protected skin).
 
+<p align="center">
+  <img src="results/figures/fig5_gse226189_age_volcano.png" width="820" alt="Figure 5: Chronological Ageing Volcano Plot" /><br/>
+  <em><b>Figure 5:</b> Volcano plot of continuous chronological ageing in primary dermal fibroblasts (N=82, adjusting for sex). Key top aging drivers are highlighted.</em>
+</p>
+
+<p align="center">
+  <img src="results/figures/fig6_gse226189_age_ma_plot.png" width="820" alt="Figure 6: Chronological Ageing MA Plot" /><br/>
+  <em><b>Figure 6:</b> MA plot displaying log2 fold-change per decade as a function of mean normalized log2-CPM expression across 20,798 genes.</em>
+</p>
+
+<p align="center">
+  <img src="results/figures/fig7_gse38308_sun_exposure_volcano.png" width="820" alt="Figure 7: Photoaging Volcano Plot" /><br/>
+  <em><b>Figure 7:</b> Paired intra-individual photoaging volcano plot contrasting sun-exposed (pre-auricular) vs sun-protected (post-auricular) skin biopsies across 21 matched donors (1,269 FDR < 0.05 genes).</em>
+</p>
+
 ### 3. Functional Pathway Enrichment (GSEA PreRank)
 * **Protein Secretion:** $\text{NES} = +2.37$, nominal $p = 0.000$, $\text{FDR} < 0.001$. Confirms senescence-associated secretory phenotype (SASP).
 * **Epithelial Mesenchymal Transition (EMT):** $\text{NES} = +1.60$, nominal $p = 0.000$, $\text{FDR} = 0.042$. Confirms dermal matrix remodeling and fibrotic transition.
 * **Cholesterol Homeostasis:** $\text{NES} = -1.69$, nominal $p = 0.002$, $\text{FDR} = 0.028$. Demonstrates age-dependent loss of epidermal/dermal lipid barrier synthesis.
 * **Wnt-beta Catenin Signaling:** $\text{NES} = -1.44$, nominal $p = 0.055$, $\text{FDR} = 0.150$. Highlights progressive loss of fibroblast stemness and priming.
+
+<p align="center">
+  <img src="results/figures/fig8_gse226189_hallmark_gsea.png" width="820" alt="Figure 8: Hallmark GSEA in Chronological Ageing" /><br/>
+  <em><b>Figure 8:</b> Normalized Enrichment Scores (NES) for MSigDB Hallmark pathways in chronological ageing (GSE226189). Highlighted: Protein Secretion / SASP (+2.37) and Cholesterol Homeostasis (-1.69).</em>
+</p>
+
+<p align="center">
+  <img src="results/figures/fig9_gse226189_reactome_gsea.png" width="820" alt="Figure 9: Reactome GSEA in Chronological Ageing" /><br/>
+  <em><b>Figure 9:</b> Reactome pathway enrichment demonstrating coordinated upregulation of extracellular matrix organization, elastic fiber formation, and translation machinery.</em>
+</p>
+
+<p align="center">
+  <img src="results/figures/fig10_gse38308_hallmark_gsea.png" width="820" alt="Figure 10: Photoaging Hallmark GSEA" /><br/>
+  <em><b>Figure 10:</b> MSigDB Hallmark pathway enrichment in UV photoaging (GSE38308; paired pre-auricular vs post-auricular facial skin).</em>
+</p>
 
 ### 4. Machine Learning Age Predictor Scorecard
 
@@ -107,6 +157,16 @@ All numbers below were produced by running the codebase directly:
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **GSE226189 (Discovery)** | 82 | Elastic Net (5-Fold CV) | **10.67 years** | 16.52 years | **0.706** ($1.29 \times 10^{-13}$) | **0.753** ($3.29 \times 10^{-16}$) | **0.495** |
 | **GSE38308 (Validation)** | 42 | Locked Model (Zero Refitting) | **48.85 years** | 6.57 years | -0.305 ($4.98 \times 10^{-2}$) | -0.314 ($4.29 \times 10^{-2}$) | -80.585 |
+
+<p align="center">
+  <img src="results/figures/fig11_predicted_vs_actual_age.png" width="820" alt="Figure 11: Predicted vs Actual Chronological Age" /><br/>
+  <em><b>Figure 11:</b> Elastic Net model performance: (Left) Leak-free 5-fold cross-validation on discovery RNA-seq fibroblasts (MAE = 10.67y, Pearson r = 0.706, p = 1.29e-13); (Right) Zero-refitting transfer evaluation on independent whole-skin microarray cohort (MAE = 48.85y).</em>
+</p>
+
+<p align="center">
+  <img src="results/figures/fig12_elastic_net_gene_weights.png" width="820" alt="Figure 12: Elastic Net Gene Weights" /><br/>
+  <em><b>Figure 12:</b> Top positive and negative Elastic Net regression feature coefficients defining the sparse transcriptomic age clock.</em>
+</p>
 
 ---
 
