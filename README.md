@@ -7,10 +7,11 @@
 > **Scientific & Engineering Disclaimer:** All findings presented in this repository represent computational transcriptomic and statistical associations, not causal biological claims or clinical diagnostic tools. This project is built as an industry-grade bioinformatics software engineering and translational discovery portfolio (demonstrating reproducible end-to-end pipelines, statistical modeling, cross-cohort machine learning, and interactive analytics dashboards). It carries no claims of anti-ageing efficacy or therapeutic cosmetic benefit.
 
 <p align="center">
-  <a href="brag-output/brag.mp4">
-    <img src="brag-output/brag.jpg" width="850" alt="SkinAge Atlas Launch Demo Video" /><br/>
-    <b>▶️ Click to Watch the 20-Second Launch Demo Video (1080p Full HD)</b>
+  <a href="https://raw.githubusercontent.com/ypadhi27/SkinAge-Atlas/main/brag-output/brag.mp4">
+    <img src="brag-output/brag.gif" width="860" alt="SkinAge Atlas 20-Second Launch Demo Video" />
   </a>
+  <br/>
+  <em><b>SkinAge Atlas 20-Second Platform Overview</b> • <a href="https://raw.githubusercontent.com/ypadhi27/SkinAge-Atlas/main/brag-output/brag.mp4">Watch / Download Full HD 1080p MP4 with sound</a></em>
 </p>
 
 ---
