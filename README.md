@@ -3,6 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11](https://img.shields.io/badge/Python-3.11-brightgreen.svg)](https://www.python.org/)
 [![Reproducibility](https://img.shields.io/badge/Reproducibility-Verified%20GEO%20Data-orange.svg)](https://www.ncbi.nlm.nih.gov/geo/)
+[![Live Web Demo](https://img.shields.io/badge/Live%20Demo-Zero--Install%20HTML%20App-blueviolet.svg)](https://ypadhi27.github.io/SkinAge-Atlas/)
 
 > **Scientific & Engineering Disclaimer:** All findings presented in this repository represent computational transcriptomic and statistical associations, not causal biological claims or clinical diagnostic tools. This project is built as an industry-grade bioinformatics software engineering and translational discovery portfolio (demonstrating reproducible end-to-end pipelines, statistical modeling, cross-cohort machine learning, and interactive analytics dashboards). It carries no claims of anti-ageing efficacy or therapeutic cosmetic benefit.
 
@@ -259,14 +260,22 @@ python src/pathway.py
 python src/model.py
 ```
 
-### 3. Launch Interactive Streamlit Dashboard
+### 3. Quick Tryout: Standalone Zero-Install Web Demo
+No Python or installation required! You can explore the interactive volcano plots, patient age clock simulator, and GSEA pathways in two ways:
+* **Online (GitHub Pages):** **[https://ypadhi27.github.io/SkinAge-Atlas/](https://ypadhi27.github.io/SkinAge-Atlas/)**
+* **Offline / Local:** Simply double-click [`demo.html`](demo.html) in your file explorer, or run:
+  ```bash
+  open demo.html
+  ```
+
+### 4. Launch Full Interactive Streamlit Dashboard
 ```bash
 streamlit run app/app.py
 ```
-Open your browser at `http://localhost:8501` to explore the interactive volcano plots, individual gene search tools, pathway visualizations, and machine learning scorecard.
+Open your browser at `http://localhost:8501` to explore the complete multi-tab analytics app with 3D PCA and live regression models.
 
-### 4. Run on Google Colab
-Open `notebooks/01_skinage_atlas_pipeline.ipynb` in [Google Colab](https://colab.research.google.com/) for zero-setup execution in the cloud.
+### 5. Run on Google Colab
+Open `notebooks/01_skinage_atlas_pipeline.ipynb` in [Google Colab](https://colab.research.google.com/) for zero-setup cloud execution.
 
 ---
 
@@ -277,9 +286,16 @@ Skinage Atlas/
 ├── .gitignore
 ├── LICENSE
 ├── README.md
+├── demo.html                       # Standalone zero-install interactive browser demo
 ├── requirements.txt
+├── docs/
+│   └── index.html                  # GitHub Pages live web demo application
 ├── app/
 │   └── app.py                      # Interactive multi-tab Streamlit dashboard
+├── brag-output/
+│   ├── brag.mp4                    # 20s 1080p Full HD launch video
+│   ├── brag.gif                    # Autoplay animated GIF
+│   └── brag.jpg                    # High-res video poster frame
 ├── data/
 │   ├── metadata/                   # Harmonized clinical metadata (GSE226189, GSE38308)
 │   ├── processed/                  # Filtered counts, log2 CPM, symbol matrices

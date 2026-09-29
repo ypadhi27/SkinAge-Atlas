@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SkinAge Atlas — Interactive Web Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    :root {
+      --bg: #070a13;
+      --card-bg: rgba(15, 23, 42, 0.75);
+      --border: rgba(255, 255, 255, 0.08);
+      --cyan: #38bdf8;
+      --rose: #f43f5e;
+      --emerald: #10b981;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 32px 24px 80px;
+    }
+    .header-banner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 32px;
+      padding: 36px 20px;
+      border-radius: 24px;
+      background: radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.15) 0%, rgba(15, 23, 42, 0) 70%), #0b1120;
+      border: 1px solid var(--border);
+    }
+    .pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      border-radius: 9999px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--cyan);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .h1-title {
+      font-size: 44px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      background: linear-gradient(180deg, #ffffff 40%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 18px;
+      max-width: 850px;
+      margin-bottom: 24px;
+    }
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      width: 100%;
+      margin-bottom: 32px;
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      backdrop-filter: blur(12px);
+    }
+    .kpi-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--cyan);
+      margin-bottom: 4px;
+    }
+    .kpi-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .tabs-nav {
+      display: flex;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      margin-bottom: 28px;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      padding: 12px 24px;
+      border-radius: 12px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .tab-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .tab-btn.active {
+      background: rgba(56, 189, 248, 0.12);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: var(--cyan);
+    }
+    .tab-pane {
+      display: none;
+    }
+    .tab-pane.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+    }
+    @media (max-width: 1024px) {
+      .grid-2col { grid-template-columns: 1fr; }
+    }
+    .control-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      height: fit-content;
+    }
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 8px;
+    }
+    .slider-input {
+      width: 100%;
+      accent-color: var(--cyan);
+      margin-bottom: 20px;
+      cursor: pointer;
+    }
+    .search-input {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+    .search-input:focus {
+      outline: none;
+      border-color: var(--cyan);
+    }
+    .plot-container {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      min-height: 520px;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-top: 16px;
+    }
+    .data-table th {
+      text-align: left;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .data-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .card-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 20px;
+    }
+    .pathway-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      border-left: 4px solid var(--cyan);
+    }
+    .footer-bar {
+      margin-top: 60px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      padding: 10px 20px;
+      border-radius: 9999px;
+      text-decoration: none;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+    .cta-btn:hover {
+      background: var(--cyan);
+      color: #070a13;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- HEADER -->
+    <div class="header-banner">
+      <div class="pill-badge">Live Interactive Portal • Client-Side Zero Install</div>
+      <h1 class="h1-title">SkinAge Atlas: Transcriptomic Explorer</h1>
+      <p class="subtitle">
+        Cross-cohort analysis of human skin chronological ageing & UV photoaging with pathway discovery and leak-free machine learning biomarker validation.
+      </p>
+      <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+        <a href="https://github.com/ypadhi27/SkinAge-Atlas" target="_blank" class="cta-btn">
+          <span>GitHub Repository →</span>
+        </a>
+        <a href="https://raw.githubusercontent.com/ypadhi27/SkinAge-Atlas/main/brag-output/brag.mp4" target="_blank" class="cta-btn" style="border-color: #f43f5e; color: #f43f5e; background: rgba(244, 63, 94, 0.1);">
+          <span>▶️ Watch 20s Demo Video</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- KPI STATS -->
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-num">124</div>
+        <div class="kpi-label">Human Donors</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-num">20,798</div>
+        <div class="kpi-label">Genes Modeled</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-num" style="color: var(--rose);">1,269</div>
+        <div class="kpi-label">Photoaging Genes</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-num" style="color: var(--emerald);">0.706</div>
+        <div class="kpi-label">ML Clock Pearson r</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-num">10.67y</div>
+        <div class="kpi-label">Cross-Val MAE</div>
+      </div>
+    </div>
+
+    <!-- TABS NAVIGATION -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('tab-volcano')">🌋 Interactive Volcano Plot</button>
+      <button class="tab-btn" onclick="switchTab('tab-clock')">⏱️ Patient Age Clock Simulator</button>
+      <button class="tab-btn" onclick="switchTab('tab-pathways')">🔬 GSEA Pathway Browser</button>
+      <button class="tab-btn" onclick="switchTab('tab-methods')">📖 Scientific Overview & Architecture</button>
+    </div>
+
+    <!-- TAB 1: VOLCANO PLOT -->
+    <div id="tab-volcano" class="tab-pane active">
+      <div class="grid-2col">
+        <div class="plot-container">
+          <div id="volcanoPlot" style="width: 100%; height: 500px;"></div>
+        </div>
+        <div class="control-panel">
+          <h3 style="font-size: 18px; margin-bottom: 16px;">Filter Controls</h3>
+          
+          <div style="margin-bottom: 16px;">
+            <label class="control-label">Cohort Analysis:</label>
+            <select id="cohortSelect" class="search-input" onchange="updateVolcanoPlot()">
+              <option value="age">Chronological Ageing (GSE226189)</option>
+              <option value="photo">UV Photoaging (GSE38308 Matched)</option>
+            </select>
+          </div>
+
+          <div>
+            <div class="control-label">
+              <span>Log2 Fold Change Threshold</span>
+              <span id="fcVal" style="color: var(--cyan);">0.10</span>
+            </div>
+            <input type="range" id="fcSlider" class="slider-input" min="0.05" max="0.5" step="0.01" value="0.10" oninput="updateVolcanoPlot()">
+          </div>
+
+          <div>
+            <div class="control-label">
+              <span>-Log10 P-value Threshold</span>
+              <span id="pvalVal" style="color: var(--cyan);">2.0</span>
+            </div>
+            <input type="range" id="pvalSlider" class="slider-input" min="1.0" max="6.0" step="0.1" value="2.0" oninput="updateVolcanoPlot()">
+          </div>
+
+          <div>
+            <label class="control-label">Search Gene Symbol:</label>
+            <input type="text" id="geneSearch" class="search-input" placeholder="e.g. CDH10, WNT5A, CYP4B1" oninput="updateVolcanoPlot()">
+          </div>
+
+          <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; font-size: 13px;">
+            <div style="color: var(--muted); margin-bottom: 4px;">Filtered Active Genes:</div>
+            <div id="filterCount" style="font-family: 'JetBrains Mono'; font-size: 20px; font-weight: 700; color: var(--emerald);">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GENE TABLE -->
+      <div class="plot-container" style="margin-top: 24px; min-height: auto;">
+        <h3 style="font-size: 18px; margin-bottom: 12px;">Top Filtered Differential Expression Candidates</h3>
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Gene Symbol</th>
+                <th>Log2 FC / Effect</th>
+                <th>Mean Expression</th>
+                <th>T-Statistic</th>
+                <th>P-Value</th>
+                <th>FDR Q-Value</th>
+                <th>Biological Regulation</th>
+              </tr>
+            </thead>
+            <tbody id="geneTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: AGE CLOCK SIMULATOR -->
+    <div id="tab-clock" class="tab-pane">
+      <div class="grid-2col">
+        <div class="plot-container">
+          <div id="gaugePlot" style="width: 100%; height: 420px;"></div>
+          <div id="patientDetails" style="margin-top: 16px; padding: 16px; background: rgba(255,255,255,0.03); border-radius: 12px;"></div>
+        </div>
+        <div class="control-panel">
+          <h3 style="font-size: 18px; margin-bottom: 16px;">Select Clinical Donor</h3>
+          <p style="font-size: 13px; color: var(--muted); margin-bottom: 16px;">
+            Choose from 82 real primary skin fibroblast RNA-seq samples evaluated with strictly leak-free 5-fold cross-validation.
+          </p>
+          <select id="patientSelect" class="search-input" onchange="updateGauge()"></select>
+
+          <h4 style="font-size: 15px; margin-top: 24px; margin-bottom: 12px; color: var(--cyan);">Top Elastic Net Feature Weights</h4>
+          <div style="max-height: 260px; overflow-y: auto;">
+            <table class="data-table" style="font-size: 12px;">
+              <thead>
+                <tr>
+                  <th>Biomarker</th>
+                  <th>Weight</th>
+                </tr>
+              </thead>
+              <tbody id="coefTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: PATHWAYS -->
+    <div id="tab-pathways" class="tab-pane">
+      <div class="plot-container" style="margin-bottom: 24px;">
+        <div id="pathwayPlot" style="width: 100%; height: 450px;"></div>
+      </div>
+      <h3 style="font-size: 20px; margin-bottom: 16px;">Biological Mechanism Summaries & Literature Guide</h3>
+      <div id="pathwayCards" class="card-list"></div>
+    </div>
+
+    <!-- TAB 4: METHODS & ARCHITECTURE -->
+    <div id="tab-methods" class="tab-pane">
+      <div class="plot-container" style="min-height: auto;">
+        <h2 style="font-size: 28px; margin-bottom: 16px;">Pipeline Architecture & Scientific Governance</h2>
+        <p style="color: var(--muted); font-size: 16px; line-height: 1.7; margin-bottom: 24px;">
+          SkinAge Atlas is built with strict reproducibility standards: zero fabricated datasets, zero synthetic p-values, and leak-free machine learning protocols.
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+          <div class="kpi-card" style="text-align: left; padding: 24px;">
+            <h3 style="color: var(--cyan); margin-bottom: 12px;">1. Continuous Modeling</h3>
+            <p style="font-size: 14px; color: var(--muted); line-height: 1.6;">
+              Rather than binning ages into arbitrary groups, we fitted an ordinary least squares regression against continuous chronological age while adjusting for biological sex across all 82 donors (GSE226189).
+            </p>
+          </div>
+          <div class="kpi-card" style="text-align: left; padding: 24px;">
+            <h3 style="color: var(--rose); margin-bottom: 12px;">2. Paired Photoaging</h3>
+            <p style="font-size: 14px; color: var(--muted); line-height: 1.6;">
+              In GSE38308, we leveraged 21 intra-individual matched pairs (pre- vs post-auricular facial biopsies) to isolate solar ultraviolet effects while controlling completely for genetic background.
+            </p>
+          </div>
+          <div class="kpi-card" style="text-align: left; padding: 24px;">
+            <h3 style="color: var(--emerald); margin-bottom: 12px;">3. Honest Transfer Assessment</h3>
+            <p style="font-size: 14px; color: var(--muted); line-height: 1.6;">
+              The Elastic Net model trained on in vitro fibroblasts failed to transfer directly to whole-skin microarrays (MAE = 48.85y), uncovering the vital role of cell-type composition dilution in clinical biomarker translation.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer-bar">
+      <div>
+        <b>SkinAge Atlas</b> • Portfolio Project developed by <a href="https://github.com/ypadhi27" style="color: var(--cyan); text-decoration: none;">Yajnasenee Padhi</a>
+      </div>
+      <div>
+        Built with Python, PyDESeq2, GSEAPy, Scikit-Learn & Plotly.js
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT DATA & LOGIC -->
+  <script>
+    const DB = {"ageGenes": [{"symbol": "CDH10", "mean_expr": 1.0247, "log2FC_per_decade": 0.2234, "t_stat": 4.6504, "p_value": 0.0, "fdr_qval": 0.1391, "neg_log10_pval": 4.8831}, {"symbol": "NEFH", "mean_expr": 1.0056, "log2FC_per_decade": -0.1453, "t_stat": -4.5168, "p_value": 0.0, "fdr_qval": 0.1391, "neg_log10_pval": 4.6638}, {"symbol": "PTPRB", "mean_expr": 3.1825, "log2FC_per_decade": 0.2233, "t_stat": 4.5137, "p_value": 0.0, "fdr_qval": 0.1391, "neg_log10_pval": 4.6588}, {"symbol": "IGDCC4", "mean_expr": 3.4608, "log2FC_per_decade": -0.1949, "t_stat": -4.3994, "p_value": 0.0, "fdr_qval": 0.1391, "neg_log10_pval": 4.4741}, {"symbol": "CHN2", "mean_expr": 0.641, "log2FC_per_decade": 0.1334, "t_stat": 4.3558, "p_value": 0.0, "fdr_qval": 0.1391, "neg_log10_pval": 4.4042}, {"symbol": "C3orf70", "mean_expr": 1.5536, "log2FC_per_decade": -0.1671, "t_stat": -4.351, "p_value": 0.0, "fdr_qval": 0.1391, "neg_log10_pval": 4.3966}, {"symbol": "ERG", "mean_expr": 1.0533, "log2FC_per_decade": 0.1652, "t_stat": 4.2713, "p_value": 0.0001, "fdr_qval": 0.1596, "neg_log10_pval": 4.2699}, {"symbol": "OLFM1", "mean_expr": 3.3225, "log2FC_per_decade": 0.1446, "t_stat": 4.1736, "p_value": 0.0001, "fdr_qval": 0.1988, "neg_log10_pval": 4.1165}, {"symbol": "PURG", "mean_expr": 0.7991, "log2FC_per_decade": -0.1347, "t_stat": -4.0992, "p_value": 0.0001, "fdr_qval": 0.2306, "neg_log10_pval": 4.0009}, {"symbol": "WNT5A", "mean_expr": 8.2002, "log2FC_per_decade": -0.1528, "t_stat": -4.0125, "p_value": 0.0001, "fdr_qval": 0.2821, "neg_log10_pval": 3.8676}, {"symbol": "BEX4", "mean_expr": 2.9197, "log2FC_per_decade": -0.1672, "t_stat": -3.9748, "p_value": 0.0002, "fdr_qval": 0.2926, "neg_log10_pval": 3.8103}, {"symbol": "H1-3", "mean_expr": 2.463, "log2FC_per_decade": -0.2413, "t_stat": -3.9462, "p_value": 0.0002, "fdr_qval": 0.2965, "neg_log10_pval": 3.7669}, {"symbol": "XKR6", "mean_expr": 0.6083, "log2FC_per_decade": -0.0942, "t_stat": -3.8177, "p_value": 0.0003, "fdr_qval": 0.4016, "neg_log10_pval": 3.5744}, {"symbol": "NETO2", "mean_expr": 3.9756, "log2FC_per_decade": -0.1496, "t_stat": -3.8135, "p_value": 0.0003, "fdr_qval": 0.4016, "neg_log10_pval": 3.5681}, {"symbol": "RANBP17", "mean_expr": 2.3307, "log2FC_per_decade": -0.1427, "t_stat": -3.7582, "p_value": 0.0003, "fdr_qval": 0.4521, "neg_log10_pval": 3.4864}, {"symbol": "GRAMD2B", "mean_expr": 5.6521, "log2FC_per_decade": 0.1088, "t_stat": 3.7218, "p_value": 0.0004, "fdr_qval": 0.4521, "neg_log10_pval": 3.4331}, {"symbol": "APBB1IP", "mean_expr": 3.4225, "log2FC_per_decade": 0.1635, "t_stat": 3.7213, "p_value": 0.0004, "fdr_qval": 0.4521, "neg_log10_pval": 3.4324}, {"symbol": "NUDT10", "mean_expr": 1.5528, "log2FC_per_decade": -0.1271, "t_stat": -3.6816, "p_value": 0.0004, "fdr_qval": 0.4878, "neg_log10_pval": 3.3746}, {"symbol": "CADM1", "mean_expr": 4.3538, "log2FC_per_decade": -0.2709, "t_stat": -3.6392, "p_value": 0.0005, "fdr_qval": 0.5224, "neg_log10_pval": 3.3132}, {"symbol": "KCNJ8", "mean_expr": 3.7093, "log2FC_per_decade": 0.241, "t_stat": 3.624, "p_value": 0.0005, "fdr_qval": 0.5224, "neg_log10_pval": 3.2913}, {"symbol": "FAXC", "mean_expr": 0.8475, "log2FC_per_decade": -0.0649, "t_stat": -3.6131, "p_value": 0.0005, "fdr_qval": 0.5224, "neg_log10_pval": 3.2756}, {"symbol": "CACNA2D3-AS1", "mean_expr": 0.1379, "log2FC_per_decade": -0.0357, "t_stat": -3.6006, "p_value": 0.0006, "fdr_qval": 0.5224, "neg_log10_pval": 3.2576}, {"symbol": "LOC107986952", "mean_expr": 0.5146, "log2FC_per_decade": 0.0562, "t_stat": 3.5669, "p_value": 0.0006, "fdr_qval": 0.5582, "neg_log10_pval": 3.2095}, {"symbol": "FBXL2", "mean_expr": 2.9132, "log2FC_per_decade": -0.1067, "t_stat": -3.5375, "p_value": 0.0007, "fdr_qval": 0.5726, "neg_log10_pval": 3.1677}, {"symbol": "FOXL1", "mean_expr": 2.2726, "log2FC_per_decade": 0.0759, "t_stat": 3.5336, "p_value": 0.0007, "fdr_qval": 0.5726, "neg_log10_pval": 3.1622}, {"symbol": "LDLRAD3", "mean_expr": 2.6658, "log2FC_per_decade": -0.0741, "t_stat": -3.4427, "p_value": 0.0009, "fdr_qval": 0.7272, "neg_log10_pval": 3.0344}, {"symbol": "VANGL2", "mean_expr": 1.644, "log2FC_per_decade": -0.1932, "t_stat": -3.436, "p_value": 0.0009, "fdr_qval": 0.7272, "neg_log10_pval": 3.025}, {"symbol": "HSPA2", "mean_expr": 4.8248, "log2FC_per_decade": -0.1469, "t_stat": -3.4092, "p_value": 0.001, "fdr_qval": 0.7343, "neg_log10_pval": 2.9878}, {"symbol": "LINC00327", "mean_expr": 2.7659, "log2FC_per_decade": -0.1407, "t_stat": -3.3926, "p_value": 0.0011, "fdr_qval": 0.7343, "neg_log10_pval": 2.9648}, {"symbol": "RNFT2", "mean_expr": 0.5645, "log2FC_per_decade": -0.0803, "t_stat": -3.3842, "p_value": 0.0011, "fdr_qval": 0.7343, "neg_log10_pval": 2.9533}, {"symbol": "LIMCH1", "mean_expr": 4.1751, "log2FC_per_decade": 0.2054, "t_stat": 3.376, "p_value": 0.0011, "fdr_qval": 0.7343, "neg_log10_pval": 2.9419}, {"symbol": "CNNM4", "mean_expr": 2.412, "log2FC_per_decade": -0.0805, "t_stat": -3.3641, "p_value": 0.0012, "fdr_qval": 0.7343, "neg_log10_pval": 2.9255}, {"symbol": "MIR4263", "mean_expr": 0.7221, "log2FC_per_decade": 0.0573, "t_stat": 3.3616, "p_value": 0.0012, "fdr_qval": 0.7343, "neg_log10_pval": 2.9222}, {"symbol": "SNX25", "mean_expr": 5.5205, "log2FC_per_decade": 0.0809, "t_stat": 3.3312, "p_value": 0.0013, "fdr_qval": 0.7343, "neg_log10_pval": 2.8805}, {"symbol": "RSPH14", "mean_expr": 0.1884, "log2FC_per_decade": -0.0238, "t_stat": -3.3238, "p_value": 0.0013, "fdr_qval": 0.7343, "neg_log10_pval": 2.8704}, {"symbol": "KCND2", "mean_expr": 1.7639, "log2FC_per_decade": 0.1988, "t_stat": 3.305, "p_value": 0.0014, "fdr_qval": 0.7343, "neg_log10_pval": 2.8448}, {"symbol": "MIR10B", "mean_expr": 0.0366, "log2FC_per_decade": -0.0079, "t_stat": -3.2908, "p_value": 0.0015, "fdr_qval": 0.7343, "neg_log10_pval": 2.8255}, {"symbol": "LRMDA", "mean_expr": 1.4422, "log2FC_per_decade": 0.1054, "t_stat": 3.2869, "p_value": 0.0015, "fdr_qval": 0.7343, "neg_log10_pval": 2.8202}, {"symbol": "HIGD1B", "mean_expr": 0.2033, "log2FC_per_decade": -0.0233, "t_stat": -3.2851, "p_value": 0.0015, "fdr_qval": 0.7343, "neg_log10_pval": 2.8178}, {"symbol": "RTCA", "mean_expr": 6.5746, "log2FC_per_decade": 0.0545, "t_stat": 3.2833, "p_value": 0.0015, "fdr_qval": 0.7343, "neg_log10_pval": 2.8153}, {"symbol": "PAIP1P1", "mean_expr": 0.174, "log2FC_per_decade": -0.0264, "t_stat": -3.2771, "p_value": 0.0016, "fdr_qval": 0.7343, "neg_log10_pval": 2.8069}, {"symbol": "ADGRF5", "mean_expr": 0.3433, "log2FC_per_decade": 0.0917, "t_stat": 3.273, "p_value": 0.0016, "fdr_qval": 0.7343, "neg_log10_pval": 2.8014}, {"symbol": "SOCS2-AS1", "mean_expr": 1.818, "log2FC_per_decade": 0.1234, "t_stat": 3.2712, "p_value": 0.0016, "fdr_qval": 0.7343, "neg_log10_pval": 2.7989}, {"symbol": "LOC100420580", "mean_expr": 0.053, "log2FC_per_decade": -0.0127, "t_stat": -3.2684, "p_value": 0.0016, "fdr_qval": 0.7343, "neg_log10_pval": 2.7951}, {"symbol": "PLS3", "mean_expr": 8.783, "log2FC_per_decade": 0.0903, "t_stat": 3.2639, "p_value": 0.0016, "fdr_qval": 0.7343, "neg_log10_pval": 2.7891}, {"symbol": "TRAPPC2", "mean_expr": 3.1694, "log2FC_per_decade": -0.0493, "t_stat": -3.2511, "p_value": 0.0017, "fdr_qval": 0.7343, "neg_log10_pval": 2.7718}, {"symbol": "CNTN4", "mean_expr": 0.1959, "log2FC_per_decade": -0.0718, "t_stat": -3.2492, "p_value": 0.0017, "fdr_qval": 0.7343, "neg_log10_pval": 2.7693}, {"symbol": "UNC5B-AS1", "mean_expr": 0.0371, "log2FC_per_decade": -0.0093, "t_stat": -3.2448, "p_value": 0.0017, "fdr_qval": 0.7343, "neg_log10_pval": 2.7635}, {"symbol": "MBOAT2", "mean_expr": 5.7972, "log2FC_per_decade": 0.0622, "t_stat": 3.237, "p_value": 0.0018, "fdr_qval": 0.7343, "neg_log10_pval": 2.7529}, {"symbol": "ANXA2R", "mean_expr": 0.7643, "log2FC_per_decade": -0.0559, "t_stat": -3.2209, "p_value": 0.0019, "fdr_qval": 0.7343, "neg_log10_pval": 2.7314}, {"symbol": "SOCS2", "mean_expr": 4.1485, "log2FC_per_decade": 0.1463, "t_stat": 3.2077, "p_value": 0.0019, "fdr_qval": 0.7343, "neg_log10_pval": 2.7138}, {"symbol": "FBXW7", "mean_expr": 5.1006, "log2FC_per_decade": 0.0431, "t_stat": 3.2073, "p_value": 0.0019, "fdr_qval": 0.7343, "neg_log10_pval": 2.7132}, {"symbol": "CRYBG1", "mean_expr": 6.307, "log2FC_per_decade": -0.1428, "t_stat": -3.207, "p_value": 0.0019, "fdr_qval": 0.7343, "neg_log10_pval": 2.7128}, {"symbol": "PRXL2A", "mean_expr": 2.1688, "log2FC_per_decade": -0.2174, "t_stat": -3.2002, "p_value": 0.002, "fdr_qval": 0.7343, "neg_log10_pval": 2.7038}, {"symbol": "CHD7", "mean_expr": 2.5252, "log2FC_per_decade": -0.1206, "t_stat": -3.1954, "p_value": 0.002, "fdr_qval": 0.7343, "neg_log10_pval": 2.6974}, {"symbol": "EYA1", "mean_expr": 0.7622, "log2FC_per_decade": -0.0952, "t_stat": -3.19, "p_value": 0.002, "fdr_qval": 0.7343, "neg_log10_pval": 2.6902}, {"symbol": "COBLL1", "mean_expr": 4.6675, "log2FC_per_decade": 0.1497, "t_stat": 3.1897, "p_value": 0.002, "fdr_qval": 0.7343, "neg_log10_pval": 2.6897}, {"symbol": "PCOLCE2", "mean_expr": 5.2965, "log2FC_per_decade": 0.1834, "t_stat": 3.1889, "p_value": 0.002, "fdr_qval": 0.7343, "neg_log10_pval": 2.6887}, {"symbol": "PRKD1", "mean_expr": 5.671, "log2FC_per_decade": 0.0842, "t_stat": 3.1781, "p_value": 0.0021, "fdr_qval": 0.7461, "neg_log10_pval": 2.6744}, {"symbol": "ATRNL1", "mean_expr": 0.5142, "log2FC_per_decade": -0.0835, "t_stat": -3.1619, "p_value": 0.0022, "fdr_qval": 0.7708, "neg_log10_pval": 2.6529}, {"symbol": "CACNA2D3", "mean_expr": 1.2071, "log2FC_per_decade": -0.1125, "t_stat": -3.1558, "p_value": 0.0023, "fdr_qval": 0.7723, "neg_log10_pval": 2.6449}, {"symbol": "TNFRSF19", "mean_expr": 5.6595, "log2FC_per_decade": -0.1626, "t_stat": -3.1443, "p_value": 0.0023, "fdr_qval": 0.787, "neg_log10_pval": 2.6297}, {"symbol": "ECHDC3", "mean_expr": 0.6955, "log2FC_per_decade": -0.0883, "t_stat": -3.1318, "p_value": 0.0024, "fdr_qval": 0.8044, "neg_log10_pval": 2.6132}, {"symbol": "FGF9", "mean_expr": 0.8072, "log2FC_per_decade": 0.1478, "t_stat": 3.0928, "p_value": 0.0027, "fdr_qval": 0.8712, "neg_log10_pval": 2.5622}, {"symbol": "CDKN1C", "mean_expr": 0.8495, "log2FC_per_decade": -0.0617, "t_stat": -3.0923, "p_value": 0.0027, "fdr_qval": 0.8712, "neg_log10_pval": 2.5615}, {"symbol": "IL13RA2", "mean_expr": 3.6354, "log2FC_per_decade": 0.249, "t_stat": 3.0763, "p_value": 0.0029, "fdr_qval": 0.8712, "neg_log10_pval": 2.5407}, {"symbol": "PRKCZ-AS1", "mean_expr": 1.3387, "log2FC_per_decade": -0.0779, "t_stat": -3.076, "p_value": 0.0029, "fdr_qval": 0.8712, "neg_log10_pval": 2.5404}, {"symbol": "SMIM1", "mean_expr": 0.0305, "log2FC_per_decade": -0.0082, "t_stat": -3.07, "p_value": 0.0029, "fdr_qval": 0.8712, "neg_log10_pval": 2.5325}, {"symbol": "MIR4324", "mean_expr": 0.1554, "log2FC_per_decade": -0.0232, "t_stat": -3.0648, "p_value": 0.003, "fdr_qval": 0.8712, "neg_log10_pval": 2.5258}, {"symbol": "PABPC1L", "mean_expr": 2.4456, "log2FC_per_decade": -0.0774, "t_stat": -3.0641, "p_value": 0.003, "fdr_qval": 0.8712, "neg_log10_pval": 2.5249}, {"symbol": "PDE7B", "mean_expr": 4.9754, "log2FC_per_decade": -0.1017, "t_stat": -3.0613, "p_value": 0.003, "fdr_qval": 0.8712, "neg_log10_pval": 2.5213}, {"symbol": "ABCC9", "mean_expr": 5.6377, "log2FC_per_decade": 0.2259, "t_stat": 3.0607, "p_value": 0.003, "fdr_qval": 0.8712, "neg_log10_pval": 2.5206}, {"symbol": "LINC01018", "mean_expr": 0.1435, "log2FC_per_decade": 0.0321, "t_stat": 3.0541, "p_value": 0.0031, "fdr_qval": 0.8761, "neg_log10_pval": 2.512}, {"symbol": "TMSB15B", "mean_expr": 2.2641, "log2FC_per_decade": -0.079, "t_stat": -3.0497, "p_value": 0.0031, "fdr_qval": 0.8761, "neg_log10_pval": 2.5062}, {"symbol": "LBR", "mean_expr": 4.7736, "log2FC_per_decade": -0.0719, "t_stat": -3.041, "p_value": 0.0032, "fdr_qval": 0.8869, "neg_log10_pval": 2.4951}, {"symbol": "TMEM26", "mean_expr": 1.7527, "log2FC_per_decade": -0.1097, "t_stat": -3.0342, "p_value": 0.0033, "fdr_qval": 0.8932, "neg_log10_pval": 2.4862}, {"symbol": "CCDC8", "mean_expr": 1.6644, "log2FC_per_decade": -0.118, "t_stat": -3.0278, "p_value": 0.0033, "fdr_qval": 0.8985, "neg_log10_pval": 2.478}, {"symbol": "PAK3", "mean_expr": 1.2741, "log2FC_per_decade": -0.0859, "t_stat": -3.0187, "p_value": 0.0034, "fdr_qval": 0.9084, "neg_log10_pval": 2.4663}, {"symbol": "SYT11", "mean_expr": 5.2755, "log2FC_per_decade": 0.057, "t_stat": 3.0129, "p_value": 0.0035, "fdr_qval": 0.9084, "neg_log10_pval": 2.4589}, {"symbol": "PDZD4", "mean_expr": 0.044, "log2FC_per_decade": -0.0098, "t_stat": -3.009, "p_value": 0.0035, "fdr_qval": 0.9084, "neg_log10_pval": 2.4539}, {"symbol": "IWS1", "mean_expr": 7.1238, "log2FC_per_decade": 0.0486, "t_stat": 3.0069, "p_value": 0.0035, "fdr_qval": 0.9084, "neg_log10_pval": 2.4513}, {"symbol": "GLIS1", "mean_expr": 1.3181, "log2FC_per_decade": -0.1047, "t_stat": -3.0008, "p_value": 0.0036, "fdr_qval": 0.9134, "neg_log10_pval": 2.4434}, {"symbol": "TMED7-TICAM2", "mean_expr": 6.4575, "log2FC_per_decade": 0.0422, "t_stat": 2.9848, "p_value": 0.0038, "fdr_qval": 0.9134, "neg_log10_pval": 2.423}, {"symbol": "NHSL3", "mean_expr": 2.2732, "log2FC_per_decade": -0.1246, "t_stat": -2.9828, "p_value": 0.0038, "fdr_qval": 0.9134, "neg_log10_pval": 2.4205}, {"symbol": "RIMS2", "mean_expr": 1.7749, "log2FC_per_decade": -0.1151, "t_stat": -2.9813, "p_value": 0.0038, "fdr_qval": 0.9134, "neg_log10_pval": 2.4186}, {"symbol": "TICAM2", "mean_expr": 6.4589, "log2FC_per_decade": 0.0421, "t_stat": 2.9802, "p_value": 0.0038, "fdr_qval": 0.9134, "neg_log10_pval": 2.4171}, {"symbol": "GPC2", "mean_expr": 0.2092, "log2FC_per_decade": -0.0267, "t_stat": -2.9661, "p_value": 0.004, "fdr_qval": 0.9134, "neg_log10_pval": 2.3993}, {"symbol": "EMCN", "mean_expr": 1.9832, "log2FC_per_decade": 0.2002, "t_stat": 2.953, "p_value": 0.0041, "fdr_qval": 0.9134, "neg_log10_pval": 2.3827}, {"symbol": "ZNF77", "mean_expr": 1.2989, "log2FC_per_decade": -0.0554, "t_stat": -2.9517, "p_value": 0.0042, "fdr_qval": 0.9134, "neg_log10_pval": 2.381}, {"symbol": "FBXW10B", "mean_expr": 1.1949, "log2FC_per_decade": -0.0903, "t_stat": -2.9448, "p_value": 0.0042, "fdr_qval": 0.9134, "neg_log10_pval": 2.3724}, {"symbol": "CFAP276", "mean_expr": 0.0459, "log2FC_per_decade": 0.0094, "t_stat": 2.9435, "p_value": 0.0043, "fdr_qval": 0.9134, "neg_log10_pval": 2.3707}, {"symbol": "RPS2P17", "mean_expr": 0.301, "log2FC_per_decade": -0.0292, "t_stat": -2.943, "p_value": 0.0043, "fdr_qval": 0.9134, "neg_log10_pval": 2.37}, {"symbol": "TIGAR", "mean_expr": 3.6339, "log2FC_per_decade": 0.0751, "t_stat": 2.9414, "p_value": 0.0043, "fdr_qval": 0.9134, "neg_log10_pval": 2.368}, {"symbol": "ZFHX4", "mean_expr": 5.5726, "log2FC_per_decade": 0.0804, "t_stat": 2.9398, "p_value": 0.0043, "fdr_qval": 0.9134, "neg_log10_pval": 2.3659}, {"symbol": "RAD1", "mean_expr": 5.6121, "log2FC_per_decade": 0.0595, "t_stat": 2.9356, "p_value": 0.0044, "fdr_qval": 0.9134, "neg_log10_pval": 2.3607}, {"symbol": "MAP2K6", "mean_expr": 1.7796, "log2FC_per_decade": -0.1367, "t_stat": -2.928, "p_value": 0.0045, "fdr_qval": 0.9134, "neg_log10_pval": 2.3511}, {"symbol": "ERMN", "mean_expr": 0.3687, "log2FC_per_decade": 0.06, "t_stat": 2.9246, "p_value": 0.0045, "fdr_qval": 0.9134, "neg_log10_pval": 2.3469}, {"symbol": "PIK3C2B", "mean_expr": 1.501, "log2FC_per_decade": -0.0763, "t_stat": -2.9238, "p_value": 0.0045, "fdr_qval": 0.9134, "neg_log10_pval": 2.3458}, {"symbol": "NPR3", "mean_expr": 5.1959, "log2FC_per_decade": 0.1357, "t_stat": 2.9146, "p_value": 0.0046, "fdr_qval": 0.9134, "neg_log10_pval": 2.3342}, {"symbol": "EFCAB9", "mean_expr": 0.0511, "log2FC_per_decade": -0.009, "t_stat": -2.9125, "p_value": 0.0047, "fdr_qval": 0.9134, "neg_log10_pval": 2.3317}, {"symbol": "CCDC141", "mean_expr": 0.0496, "log2FC_per_decade": 0.0162, "t_stat": 2.9033, "p_value": 0.0048, "fdr_qval": 0.9134, "neg_log10_pval": 2.3201}, {"symbol": "LINC02941", "mean_expr": 0.5444, "log2FC_per_decade": 0.054, "t_stat": 2.9013, "p_value": 0.0048, "fdr_qval": 0.9134, "neg_log10_pval": 2.3176}, {"symbol": "ARCN1", "mean_expr": 9.1334, "log2FC_per_decade": 0.055, "t_stat": 2.8999, "p_value": 0.0048, "fdr_qval": 0.9134, "neg_log10_pval": 2.3159}, {"symbol": "HTR1F", "mean_expr": 0.2255, "log2FC_per_decade": 0.0607, "t_stat": 2.8996, "p_value": 0.0048, "fdr_qval": 0.9134, "neg_log10_pval": 2.3155}, {"symbol": "FAM27C", "mean_expr": 0.0834, "log2FC_per_decade": -0.0166, "t_stat": -2.8817, "p_value": 0.0051, "fdr_qval": 0.9134, "neg_log10_pval": 2.2931}, {"symbol": "PAX9", "mean_expr": 0.4788, "log2FC_per_decade": 0.0642, "t_stat": 2.8723, "p_value": 0.0052, "fdr_qval": 0.9134, "neg_log10_pval": 2.2815}, {"symbol": "ERFE", "mean_expr": 0.3321, "log2FC_per_decade": -0.0375, "t_stat": -2.8549, "p_value": 0.0055, "fdr_qval": 0.9134, "neg_log10_pval": 2.2599}, {"symbol": "ADAM33", "mean_expr": 4.6316, "log2FC_per_decade": -0.1629, "t_stat": -2.8534, "p_value": 0.0055, "fdr_qval": 0.9134, "neg_log10_pval": 2.2581}, {"symbol": "DANT2", "mean_expr": 0.2254, "log2FC_per_decade": -0.0408, "t_stat": -2.8533, "p_value": 0.0055, "fdr_qval": 0.9134, "neg_log10_pval": 2.2579}, {"symbol": "TPM1", "mean_expr": 11.4357, "log2FC_per_decade": 0.15, "t_stat": 2.8526, "p_value": 0.0055, "fdr_qval": 0.9134, "neg_log10_pval": 2.257}, {"symbol": "ACTC1", "mean_expr": 3.5699, "log2FC_per_decade": 0.3067, "t_stat": 2.8481, "p_value": 0.0056, "fdr_qval": 0.9134, "neg_log10_pval": 2.2515}, {"symbol": "LOC101928198", "mean_expr": 3.6835, "log2FC_per_decade": 0.1224, "t_stat": 2.8384, "p_value": 0.0058, "fdr_qval": 0.9134, "neg_log10_pval": 2.2396}, {"symbol": "SLC25A29", "mean_expr": 1.4251, "log2FC_per_decade": -0.0863, "t_stat": -2.8384, "p_value": 0.0058, "fdr_qval": 0.9134, "neg_log10_pval": 2.2396}, {"symbol": "WDR44", "mean_expr": 5.5231, "log2FC_per_decade": 0.0689, "t_stat": 2.8323, "p_value": 0.0059, "fdr_qval": 0.9134, "neg_log10_pval": 2.232}, {"symbol": "CPA4", "mean_expr": 4.0627, "log2FC_per_decade": -0.1629, "t_stat": -2.8304, "p_value": 0.0059, "fdr_qval": 0.9134, "neg_log10_pval": 2.2296}, {"symbol": "TOP6BL", "mean_expr": 1.5981, "log2FC_per_decade": -0.0614, "t_stat": -2.8224, "p_value": 0.006, "fdr_qval": 0.9134, "neg_log10_pval": 2.2198}, {"symbol": "TPK1", "mean_expr": 1.698, "log2FC_per_decade": 0.0666, "t_stat": 2.8222, "p_value": 0.006, "fdr_qval": 0.9134, "neg_log10_pval": 2.2196}, {"symbol": "GREM2", "mean_expr": 7.2508, "log2FC_per_decade": 0.1454, "t_stat": 2.8106, "p_value": 0.0062, "fdr_qval": 0.9134, "neg_log10_pval": 2.2054}, {"symbol": "TGFBR2", "mean_expr": 8.4105, "log2FC_per_decade": 0.0618, "t_stat": 2.8097, "p_value": 0.0062, "fdr_qval": 0.9134, "neg_log10_pval": 2.2043}, {"symbol": "GAU1", "mean_expr": 0.0756, "log2FC_per_decade": -0.0112, "t_stat": -2.8093, "p_value": 0.0063, "fdr_qval": 0.9134, "neg_log10_pval": 2.2037}, {"symbol": "SOCS1", "mean_expr": 0.2157, "log2FC_per_decade": -0.0271, "t_stat": -2.8044, "p_value": 0.0063, "fdr_qval": 0.9134, "neg_log10_pval": 2.1978}, {"symbol": "EYA2", "mean_expr": 0.7482, "log2FC_per_decade": 0.104, "t_stat": 2.8035, "p_value": 0.0064, "fdr_qval": 0.9134, "neg_log10_pval": 2.1967}, {"symbol": "CCZ1B", "mean_expr": 6.0986, "log2FC_per_decade": 0.0715, "t_stat": 2.8027, "p_value": 0.0064, "fdr_qval": 0.9134, "neg_log10_pval": 2.1957}, {"symbol": "MYO1E", "mean_expr": 6.3031, "log2FC_per_decade": 0.1064, "t_stat": 2.7978, "p_value": 0.0065, "fdr_qval": 0.9134, "neg_log10_pval": 2.1897}, {"symbol": "NGF-AS1", "mean_expr": 0.4373, "log2FC_per_decade": 0.0495, "t_stat": 2.7947, "p_value": 0.0065, "fdr_qval": 0.9134, "neg_log10_pval": 2.1859}, {"symbol": "SNHG25", "mean_expr": 0.0903, "log2FC_per_decade": -0.0108, "t_stat": -2.7856, "p_value": 0.0067, "fdr_qval": 0.9134, "neg_log10_pval": 2.1748}, {"symbol": "CD226", "mean_expr": 1.4364, "log2FC_per_decade": 0.0639, "t_stat": 2.7853, "p_value": 0.0067, "fdr_qval": 0.9134, "neg_log10_pval": 2.1745}, {"symbol": "LINC01204", "mean_expr": 1.7769, "log2FC_per_decade": 0.1189, "t_stat": 2.7818, "p_value": 0.0068, "fdr_qval": 0.9134, "neg_log10_pval": 2.1702}, {"symbol": "ZIK1", "mean_expr": 2.5189, "log2FC_per_decade": -0.0577, "t_stat": -2.7785, "p_value": 0.0068, "fdr_qval": 0.9134, "neg_log10_pval": 2.1661}, {"symbol": "COL18A1", "mean_expr": 3.3775, "log2FC_per_decade": -0.2194, "t_stat": -2.7748, "p_value": 0.0069, "fdr_qval": 0.9134, "neg_log10_pval": 2.1616}, {"symbol": "MYRF-AS1", "mean_expr": 0.2724, "log2FC_per_decade": -0.0236, "t_stat": -2.7742, "p_value": 0.0069, "fdr_qval": 0.9134, "neg_log10_pval": 2.1609}, {"symbol": "COL27A1", "mean_expr": 3.6205, "log2FC_per_decade": -0.1049, "t_stat": -2.7718, "p_value": 0.0069, "fdr_qval": 0.9134, "neg_log10_pval": 2.158}, {"symbol": "PDE1A", "mean_expr": 1.3516, "log2FC_per_decade": 0.1442, "t_stat": 2.7688, "p_value": 0.007, "fdr_qval": 0.9134, "neg_log10_pval": 2.1544}, {"symbol": "CSPG4P12", "mean_expr": 3.225, "log2FC_per_decade": -0.0894, "t_stat": -2.7662, "p_value": 0.0071, "fdr_qval": 0.9134, "neg_log10_pval": 2.1512}, {"symbol": "GPX3", "mean_expr": 2.6513, "log2FC_per_decade": 0.1368, "t_stat": 2.7629, "p_value": 0.0071, "fdr_qval": 0.9134, "neg_log10_pval": 2.1473}, {"symbol": "ARHGEF33", "mean_expr": 0.9579, "log2FC_per_decade": -0.0572, "t_stat": -2.7619, "p_value": 0.0071, "fdr_qval": 0.9134, "neg_log10_pval": 2.1461}, {"symbol": "ANKRD1", "mean_expr": 2.6673, "log2FC_per_decade": 0.2053, "t_stat": 2.7587, "p_value": 0.0072, "fdr_qval": 0.9134, "neg_log10_pval": 2.1421}, {"symbol": "RPL17P26", "mean_expr": 0.2345, "log2FC_per_decade": -0.0279, "t_stat": -2.7567, "p_value": 0.0072, "fdr_qval": 0.9134, "neg_log10_pval": 2.1397}, {"symbol": "RN7SL815P", "mean_expr": 0.1207, "log2FC_per_decade": -0.0195, "t_stat": -2.7567, "p_value": 0.0072, "fdr_qval": 0.9134, "neg_log10_pval": 2.1397}, {"symbol": "SNORA63D", "mean_expr": 0.0471, "log2FC_per_decade": 0.0079, "t_stat": 2.7525, "p_value": 0.0073, "fdr_qval": 0.9134, "neg_log10_pval": 2.1346}, {"symbol": "TUFMP1", "mean_expr": 0.0534, "log2FC_per_decade": -0.0073, "t_stat": -2.7475, "p_value": 0.0074, "fdr_qval": 0.9134, "neg_log10_pval": 2.1287}, {"symbol": "LHX8", "mean_expr": 0.1592, "log2FC_per_decade": 0.0432, "t_stat": 2.7467, "p_value": 0.0075, "fdr_qval": 0.9134, "neg_log10_pval": 2.1276}, {"symbol": "PM20D2", "mean_expr": 2.8163, "log2FC_per_decade": -0.0938, "t_stat": -2.7389, "p_value": 0.0076, "fdr_qval": 0.9134, "neg_log10_pval": 2.1183}, {"symbol": "LINC01592", "mean_expr": 0.095, "log2FC_per_decade": 0.0255, "t_stat": 2.7348, "p_value": 0.0077, "fdr_qval": 0.9134, "neg_log10_pval": 2.1133}, {"symbol": "CFAP97D1", "mean_expr": 0.0621, "log2FC_per_decade": 0.0142, "t_stat": 2.7318, "p_value": 0.0078, "fdr_qval": 0.9134, "neg_log10_pval": 2.1097}, {"symbol": "SKP1", "mean_expr": 7.4151, "log2FC_per_decade": 0.0443, "t_stat": 2.726, "p_value": 0.0079, "fdr_qval": 0.9134, "neg_log10_pval": 2.1027}, {"symbol": "OR7E14P", "mean_expr": 0.0457, "log2FC_per_decade": -0.0117, "t_stat": -2.7241, "p_value": 0.0079, "fdr_qval": 0.9134, "neg_log10_pval": 2.1004}, {"symbol": "WNT11", "mean_expr": 0.791, "log2FC_per_decade": -0.1051, "t_stat": -2.7228, "p_value": 0.008, "fdr_qval": 0.9134, "neg_log10_pval": 2.099}, {"symbol": "LOC124904362", "mean_expr": 0.0652, "log2FC_per_decade": -0.0106, "t_stat": -2.7197, "p_value": 0.008, "fdr_qval": 0.9134, "neg_log10_pval": 2.0952}, {"symbol": "MKNK2", "mean_expr": 3.8164, "log2FC_per_decade": -0.1222, "t_stat": -2.7117, "p_value": 0.0082, "fdr_qval": 0.9134, "neg_log10_pval": 2.0856}, {"symbol": "LOC124901076", "mean_expr": 0.0888, "log2FC_per_decade": -0.0144, "t_stat": -2.709, "p_value": 0.0083, "fdr_qval": 0.9134, "neg_log10_pval": 2.0824}, {"symbol": "PWWP2B", "mean_expr": 0.6784, "log2FC_per_decade": -0.0515, "t_stat": -2.7084, "p_value": 0.0083, "fdr_qval": 0.9134, "neg_log10_pval": 2.0817}, {"symbol": "GOLGA8G", "mean_expr": 0.2318, "log2FC_per_decade": 0.0369, "t_stat": 2.7057, "p_value": 0.0083, "fdr_qval": 0.9134, "neg_log10_pval": 2.0784}, {"symbol": "MIR548A3", "mean_expr": 0.0502, "log2FC_per_decade": -0.0075, "t_stat": -2.7015, "p_value": 0.0084, "fdr_qval": 0.9134, "neg_log10_pval": 2.0735}, {"symbol": "RN7SL801P", "mean_expr": 0.0354, "log2FC_per_decade": -0.0098, "t_stat": -2.6974, "p_value": 0.0085, "fdr_qval": 0.9134, "neg_log10_pval": 2.0686}, {"symbol": "KCTD20", "mean_expr": 6.62, "log2FC_per_decade": 0.0553, "t_stat": 2.6963, "p_value": 0.0086, "fdr_qval": 0.9134, "neg_log10_pval": 2.0672}, {"symbol": "SH3BP2", "mean_expr": 3.6089, "log2FC_per_decade": -0.0962, "t_stat": -2.6896, "p_value": 0.0087, "fdr_qval": 0.9134, "neg_log10_pval": 2.0593}, {"symbol": "SOCS3", "mean_expr": 3.8352, "log2FC_per_decade": -0.1263, "t_stat": -2.6895, "p_value": 0.0087, "fdr_qval": 0.9134, "neg_log10_pval": 2.0591}, {"symbol": "SLC4A4", "mean_expr": 3.846, "log2FC_per_decade": 0.1432, "t_stat": 2.6871, "p_value": 0.0088, "fdr_qval": 0.9134, "neg_log10_pval": 2.0563}, {"symbol": "RPS2P35", "mean_expr": 0.3784, "log2FC_per_decade": -0.035, "t_stat": -2.685, "p_value": 0.0088, "fdr_qval": 0.9134, "neg_log10_pval": 2.0537}, {"symbol": "GSN", "mean_expr": 6.6049, "log2FC_per_decade": -0.0777, "t_stat": -2.6847, "p_value": 0.0088, "fdr_qval": 0.9134, "neg_log10_pval": 2.0534}, {"symbol": "DOK5", "mean_expr": 2.8204, "log2FC_per_decade": 0.1823, "t_stat": 2.6803, "p_value": 0.0089, "fdr_qval": 0.9134, "neg_log10_pval": 2.0482}, {"symbol": "VEGFC", "mean_expr": 5.2135, "log2FC_per_decade": 0.0619, "t_stat": 2.6786, "p_value": 0.009, "fdr_qval": 0.9134, "neg_log10_pval": 2.0462}, {"symbol": "TSPAN14", "mean_expr": 3.5621, "log2FC_per_decade": -0.1031, "t_stat": -2.6766, "p_value": 0.009, "fdr_qval": 0.9134, "neg_log10_pval": 2.0438}, {"symbol": "CACNG4", "mean_expr": 0.1934, "log2FC_per_decade": -0.054, "t_stat": -2.6751, "p_value": 0.0091, "fdr_qval": 0.9134, "neg_log10_pval": 2.042}, {"symbol": "LINC02891", "mean_expr": 0.0707, "log2FC_per_decade": -0.0195, "t_stat": -2.6725, "p_value": 0.0091, "fdr_qval": 0.9134, "neg_log10_pval": 2.0389}, {"symbol": "SMLR1", "mean_expr": 0.2933, "log2FC_per_decade": -0.0337, "t_stat": -2.6702, "p_value": 0.0092, "fdr_qval": 0.9134, "neg_log10_pval": 2.0362}, {"symbol": "GALNT14", "mean_expr": 1.0466, "log2FC_per_decade": -0.1005, "t_stat": -2.6685, "p_value": 0.0092, "fdr_qval": 0.9134, "neg_log10_pval": 2.0342}, {"symbol": "NR3C2", "mean_expr": 1.6288, "log2FC_per_decade": 0.0703, "t_stat": 2.6662, "p_value": 0.0093, "fdr_qval": 0.9134, "neg_log10_pval": 2.0315}, {"symbol": "LOC105274304", "mean_expr": 1.5796, "log2FC_per_decade": 0.0571, "t_stat": 2.6621, "p_value": 0.0094, "fdr_qval": 0.9134, "neg_log10_pval": 2.0266}, {"symbol": "IL31RA", "mean_expr": 0.7824, "log2FC_per_decade": -0.0712, "t_stat": -2.6583, "p_value": 0.0095, "fdr_qval": 0.9134, "neg_log10_pval": 2.0221}, {"symbol": "TEX12", "mean_expr": 0.1531, "log2FC_per_decade": -0.0174, "t_stat": -2.6573, "p_value": 0.0095, "fdr_qval": 0.9134, "neg_log10_pval": 2.021}, {"symbol": "BAIAP2-DT", "mean_expr": 2.1063, "log2FC_per_decade": -0.0821, "t_stat": -2.6567, "p_value": 0.0095, "fdr_qval": 0.9134, "neg_log10_pval": 2.0202}, {"symbol": "NAT1", "mean_expr": 2.8597, "log2FC_per_decade": 0.0496, "t_stat": 2.6566, "p_value": 0.0095, "fdr_qval": 0.9134, "neg_log10_pval": 2.0202}, {"symbol": "PAPSS2", "mean_expr": 6.418, "log2FC_per_decade": 0.0623, "t_stat": 2.6564, "p_value": 0.0096, "fdr_qval": 0.9134, "neg_log10_pval": 2.0199}, {"symbol": "RPL21P18", "mean_expr": 0.0493, "log2FC_per_decade": -0.0068, "t_stat": -2.6561, "p_value": 0.0096, "fdr_qval": 0.9134, "neg_log10_pval": 2.0196}, {"symbol": "SLC1A1", "mean_expr": 2.8853, "log2FC_per_decade": 0.1105, "t_stat": 2.6543, "p_value": 0.0096, "fdr_qval": 0.9134, "neg_log10_pval": 2.0174}, {"symbol": "PAPLN", "mean_expr": 1.2436, "log2FC_per_decade": -0.0655, "t_stat": -2.6529, "p_value": 0.0096, "fdr_qval": 0.9134, "neg_log10_pval": 2.0157}, {"symbol": "TRCR1", "mean_expr": 0.9646, "log2FC_per_decade": -0.0524, "t_stat": -2.6487, "p_value": 0.0098, "fdr_qval": 0.9134, "neg_log10_pval": 2.0108}, {"symbol": "ZBTB43", "mean_expr": 4.7029, "log2FC_per_decade": -0.0527, "t_stat": -2.6448, "p_value": 0.0099, "fdr_qval": 0.9134, "neg_log10_pval": 2.0062}, {"symbol": "TLK2", "mean_expr": 7.082, "log2FC_per_decade": 0.0282, "t_stat": 2.6447, "p_value": 0.0099, "fdr_qval": 0.9134, "neg_log10_pval": 2.0062}, {"symbol": "MANSC1", "mean_expr": 2.8021, "log2FC_per_decade": 0.1115, "t_stat": 2.6431, "p_value": 0.0099, "fdr_qval": 0.9134, "neg_log10_pval": 2.0042}, {"symbol": "LINC03140", "mean_expr": 0.5548, "log2FC_per_decade": 0.0642, "t_stat": 2.6411, "p_value": 0.01, "fdr_qval": 0.9134, "neg_log10_pval": 2.0019}, {"symbol": "ADAMTS7P4", "mean_expr": 1.1431, "log2FC_per_decade": -0.0769, "t_stat": -2.6382, "p_value": 0.01, "fdr_qval": 0.9134, "neg_log10_pval": 1.9985}, {"symbol": "FANCE", "mean_expr": 1.4995, "log2FC_per_decade": -0.072, "t_stat": -2.6372, "p_value": 0.0101, "fdr_qval": 0.9134, "neg_log10_pval": 1.9973}, {"symbol": "LOC646870", "mean_expr": 0.4614, "log2FC_per_decade": -0.0452, "t_stat": -2.6352, "p_value": 0.0101, "fdr_qval": 0.9134, "neg_log10_pval": 1.9949}, {"symbol": "APBA2", "mean_expr": 0.6392, "log2FC_per_decade": -0.0937, "t_stat": -2.6347, "p_value": 0.0101, "fdr_qval": 0.9134, "neg_log10_pval": 1.9944}, {"symbol": "SNORD74B", "mean_expr": 0.287, "log2FC_per_decade": -0.0574, "t_stat": -2.6329, "p_value": 0.0102, "fdr_qval": 0.9134, "neg_log10_pval": 1.9923}, {"symbol": "PRSS37", "mean_expr": 0.0527, "log2FC_per_decade": -0.0117, "t_stat": -2.6329, "p_value": 0.0102, "fdr_qval": 0.9134, "neg_log10_pval": 1.9923}, {"symbol": "IL7R", "mean_expr": 6.1808, "log2FC_per_decade": 0.1353, "t_stat": 2.6327, "p_value": 0.0102, "fdr_qval": 0.9134, "neg_log10_pval": 1.992}, {"symbol": "PCDHA14", "mean_expr": 0.0494, "log2FC_per_decade": 0.0109, "t_stat": 2.6315, "p_value": 0.0102, "fdr_qval": 0.9134, "neg_log10_pval": 1.9906}, {"symbol": "SNORD114-6", "mean_expr": 0.2211, "log2FC_per_decade": -0.0376, "t_stat": -2.6286, "p_value": 0.0103, "fdr_qval": 0.9134, "neg_log10_pval": 1.9872}, {"symbol": "GNAZ", "mean_expr": 0.7426, "log2FC_per_decade": -0.0617, "t_stat": -2.6272, "p_value": 0.0103, "fdr_qval": 0.9134, "neg_log10_pval": 1.9856}, {"symbol": "SLC7A14", "mean_expr": 2.6577, "log2FC_per_decade": -0.1392, "t_stat": -2.6259, "p_value": 0.0104, "fdr_qval": 0.9134, "neg_log10_pval": 1.9841}, {"symbol": "IMPACT", "mean_expr": 6.178, "log2FC_per_decade": 0.0595, "t_stat": 2.6244, "p_value": 0.0104, "fdr_qval": 0.9134, "neg_log10_pval": 1.9823}, {"symbol": "RPS10P5", "mean_expr": 0.5091, "log2FC_per_decade": -0.0423, "t_stat": -2.6237, "p_value": 0.0104, "fdr_qval": 0.9134, "neg_log10_pval": 1.9814}, {"symbol": "ADGRB3", "mean_expr": 0.1118, "log2FC_per_decade": 0.0345, "t_stat": 2.623, "p_value": 0.0105, "fdr_qval": 0.9134, "neg_log10_pval": 1.9807}, {"symbol": "ADCY1", "mean_expr": 1.0073, "log2FC_per_decade": -0.0973, "t_stat": -2.6197, "p_value": 0.0106, "fdr_qval": 0.9134, "neg_log10_pval": 1.9767}, {"symbol": "SALL2", "mean_expr": 2.2386, "log2FC_per_decade": -0.113, "t_stat": -2.6168, "p_value": 0.0106, "fdr_qval": 0.9134, "neg_log10_pval": 1.9734}, {"symbol": "SHF", "mean_expr": 0.9443, "log2FC_per_decade": -0.0781, "t_stat": -2.6148, "p_value": 0.0107, "fdr_qval": 0.9134, "neg_log10_pval": 1.9711}, {"symbol": "BIK", "mean_expr": 0.0704, "log2FC_per_decade": -0.0108, "t_stat": -2.6079, "p_value": 0.0109, "fdr_qval": 0.9134, "neg_log10_pval": 1.963}, {"symbol": "TOX", "mean_expr": 2.9531, "log2FC_per_decade": -0.1629, "t_stat": -2.6074, "p_value": 0.0109, "fdr_qval": 0.9134, "neg_log10_pval": 1.9624}, {"symbol": "ZNF711", "mean_expr": 3.1586, "log2FC_per_decade": -0.1012, "t_stat": -2.6062, "p_value": 0.0109, "fdr_qval": 0.9134, "neg_log10_pval": 1.961}, {"symbol": "TRHDE", "mean_expr": 3.2785, "log2FC_per_decade": -0.187, "t_stat": -2.6042, "p_value": 0.011, "fdr_qval": 0.9134, "neg_log10_pval": 1.9586}, {"symbol": "PODXL", "mean_expr": 4.6539, "log2FC_per_decade": 0.1766, "t_stat": 2.6015, "p_value": 0.0111, "fdr_qval": 0.9134, "neg_log10_pval": 1.9555}, {"symbol": "KALRN", "mean_expr": 2.9857, "log2FC_per_decade": -0.0933, "t_stat": -2.6002, "p_value": 0.0111, "fdr_qval": 0.9134, "neg_log10_pval": 1.9541}, {"symbol": "ABHD5", "mean_expr": 4.8165, "log2FC_per_decade": 0.0545, "t_stat": 2.5992, "p_value": 0.0111, "fdr_qval": 0.9134, "neg_log10_pval": 1.9529}, {"symbol": "GYPE", "mean_expr": 2.5939, "log2FC_per_decade": 0.068, "t_stat": 2.598, "p_value": 0.0112, "fdr_qval": 0.9134, "neg_log10_pval": 1.9515}, {"symbol": "XPR1", "mean_expr": 5.222, "log2FC_per_decade": 0.0473, "t_stat": 2.5946, "p_value": 0.0113, "fdr_qval": 0.9134, "neg_log10_pval": 1.9475}, {"symbol": "LOC102723305", "mean_expr": 0.1452, "log2FC_per_decade": -0.0244, "t_stat": -2.5932, "p_value": 0.0113, "fdr_qval": 0.9134, "neg_log10_pval": 1.9459}, {"symbol": "UAP1", "mean_expr": 6.7146, "log2FC_per_decade": 0.0519, "t_stat": 2.5924, "p_value": 0.0114, "fdr_qval": 0.9134, "neg_log10_pval": 1.9449}, {"symbol": "SLC19A1", "mean_expr": 3.3013, "log2FC_per_decade": -0.1879, "t_stat": -2.5909, "p_value": 0.0114, "fdr_qval": 0.9134, "neg_log10_pval": 1.9432}, {"symbol": "MYLK2", "mean_expr": 0.0473, "log2FC_per_decade": 0.0115, "t_stat": 2.5883, "p_value": 0.0115, "fdr_qval": 0.9134, "neg_log10_pval": 1.9403}, {"symbol": "STX12", "mean_expr": 6.4816, "log2FC_per_decade": 0.0723, "t_stat": 2.5799, "p_value": 0.0117, "fdr_qval": 0.9134, "neg_log10_pval": 1.9305}, {"symbol": "GALNT5", "mean_expr": 8.1939, "log2FC_per_decade": 0.1072, "t_stat": 2.5778, "p_value": 0.0118, "fdr_qval": 0.9134, "neg_log10_pval": 1.928}, {"symbol": "VEZT", "mean_expr": 6.5354, "log2FC_per_decade": 0.0334, "t_stat": 2.576, "p_value": 0.0119, "fdr_qval": 0.9134, "neg_log10_pval": 1.9259}, {"symbol": "SLC9B2", "mean_expr": 5.5143, "log2FC_per_decade": 0.0373, "t_stat": 2.5759, "p_value": 0.0119, "fdr_qval": 0.9134, "neg_log10_pval": 1.9259}, {"symbol": "ICOSLG", "mean_expr": 0.2755, "log2FC_per_decade": -0.0454, "t_stat": -2.5758, "p_value": 0.0119, "fdr_qval": 0.9134, "neg_log10_pval": 1.9258}, {"symbol": "LINC00926", "mean_expr": 0.2771, "log2FC_per_decade": -0.0273, "t_stat": -2.5749, "p_value": 0.0119, "fdr_qval": 0.9134, "neg_log10_pval": 1.9247}, {"symbol": "UTP25", "mean_expr": 5.6756, "log2FC_per_decade": 0.0628, "t_stat": 2.5741, "p_value": 0.0119, "fdr_qval": 0.9134, "neg_log10_pval": 1.9238}, {"symbol": "MILR1", "mean_expr": 0.3514, "log2FC_per_decade": 0.0381, "t_stat": 2.5668, "p_value": 0.0122, "fdr_qval": 0.9134, "neg_log10_pval": 1.9153}, {"symbol": "KIF21B", "mean_expr": 0.2665, "log2FC_per_decade": -0.0349, "t_stat": -2.5666, "p_value": 0.0122, "fdr_qval": 0.9134, "neg_log10_pval": 1.9151}, {"symbol": "COL6A1", "mean_expr": 8.2484, "log2FC_per_decade": -0.1478, "t_stat": -2.5645, "p_value": 0.0122, "fdr_qval": 0.9134, "neg_log10_pval": 1.9127}, {"symbol": "STK17A", "mean_expr": 6.1882, "log2FC_per_decade": 0.0669, "t_stat": 2.5637, "p_value": 0.0123, "fdr_qval": 0.9134, "neg_log10_pval": 1.9118}, {"symbol": "SFRP4", "mean_expr": 1.0096, "log2FC_per_decade": 0.128, "t_stat": 2.5634, "p_value": 0.0123, "fdr_qval": 0.9134, "neg_log10_pval": 1.9114}, {"symbol": "RALGDS", "mean_expr": 2.9242, "log2FC_per_decade": -0.0858, "t_stat": -2.5633, "p_value": 0.0123, "fdr_qval": 0.9134, "neg_log10_pval": 1.9113}, {"symbol": "ELL2", "mean_expr": 8.0108, "log2FC_per_decade": 0.0624, "t_stat": 2.5627, "p_value": 0.0123, "fdr_qval": 0.9134, "neg_log10_pval": 1.9106}, {"symbol": "ZNF563", "mean_expr": 1.3998, "log2FC_per_decade": 0.0438, "t_stat": 2.5624, "p_value": 0.0123, "fdr_qval": 0.9134, "neg_log10_pval": 1.9102}, {"symbol": "HHEX", "mean_expr": 0.4294, "log2FC_per_decade": -0.0511, "t_stat": -2.5621, "p_value": 0.0123, "fdr_qval": 0.9134, "neg_log10_pval": 1.9099}, {"symbol": "FBXW7-AS1", "mean_expr": 1.8313, "log2FC_per_decade": 0.0394, "t_stat": 2.5619, "p_value": 0.0123, "fdr_qval": 0.9134, "neg_log10_pval": 1.9096}, {"symbol": "ATG4A", "mean_expr": 3.7266, "log2FC_per_decade": 0.0515, "t_stat": 2.5612, "p_value": 0.0123, "fdr_qval": 0.9134, "neg_log10_pval": 1.9089}, {"symbol": "ARL2BP", "mean_expr": 6.6082, "log2FC_per_decade": 0.0596, "t_stat": 2.5611, "p_value": 0.0123, "fdr_qval": 0.9134, "neg_log10_pval": 1.9088}, {"symbol": "HTR2A", "mean_expr": 2.0825, "log2FC_per_decade": 0.1296, "t_stat": 2.5609, "p_value": 0.0123, "fdr_qval": 0.9134, "neg_log10_pval": 1.9085}, {"symbol": "GRK5", "mean_expr": 3.7567, "log2FC_per_decade": -0.0599, "t_stat": -2.5588, "p_value": 0.0124, "fdr_qval": 0.9134, "neg_log10_pval": 1.9061}, {"symbol": "TEAD1-AS1", "mean_expr": 0.1046, "log2FC_per_decade": -0.0139, "t_stat": -2.5567, "p_value": 0.0125, "fdr_qval": 0.9134, "neg_log10_pval": 1.9037}, {"symbol": "RSPH10B2", "mean_expr": 4.9406, "log2FC_per_decade": 0.08, "t_stat": 2.556, "p_value": 0.0125, "fdr_qval": 0.9134, "neg_log10_pval": 1.9029}, {"symbol": "GLYATL2", "mean_expr": 1.4936, "log2FC_per_decade": -0.1185, "t_stat": -2.5532, "p_value": 0.0126, "fdr_qval": 0.9134, "neg_log10_pval": 1.8997}, {"symbol": "SCUBE2", "mean_expr": 2.7415, "log2FC_per_decade": -0.1061, "t_stat": -2.553, "p_value": 0.0126, "fdr_qval": 0.9134, "neg_log10_pval": 1.8995}, {"symbol": "LLPH-DT", "mean_expr": 0.0834, "log2FC_per_decade": -0.007, "t_stat": -2.5529, "p_value": 0.0126, "fdr_qval": 0.9134, "neg_log10_pval": 1.8993}, {"symbol": "CDC50B", "mean_expr": 2.0529, "log2FC_per_decade": 0.1644, "t_stat": 2.5489, "p_value": 0.0127, "fdr_qval": 0.9134, "neg_log10_pval": 1.8947}, {"symbol": "SPEN-AS1", "mean_expr": 0.6188, "log2FC_per_decade": -0.0332, "t_stat": -2.5481, "p_value": 0.0128, "fdr_qval": 0.9134, "neg_log10_pval": 1.8938}, {"symbol": "GNL3", "mean_expr": 6.4313, "log2FC_per_decade": -0.0424, "t_stat": -2.5477, "p_value": 0.0128, "fdr_qval": 0.9134, "neg_log10_pval": 1.8934}, {"symbol": "PIM1", "mean_expr": 3.4161, "log2FC_per_decade": -0.0965, "t_stat": -2.5453, "p_value": 0.0129, "fdr_qval": 0.9134, "neg_log10_pval": 1.8906}, {"symbol": "RELCH", "mean_expr": 6.272, "log2FC_per_decade": 0.049, "t_stat": 2.5426, "p_value": 0.013, "fdr_qval": 0.9134, "neg_log10_pval": 1.8875}, {"symbol": "TNFRSF10A-DT", "mean_expr": 0.4407, "log2FC_per_decade": -0.0387, "t_stat": -2.5389, "p_value": 0.0131, "fdr_qval": 0.9134, "neg_log10_pval": 1.8832}, {"symbol": "RPL5P18", "mean_expr": 0.9034, "log2FC_per_decade": -0.0452, "t_stat": -2.5383, "p_value": 0.0131, "fdr_qval": 0.9134, "neg_log10_pval": 1.8825}, {"symbol": "ENPP7P6", "mean_expr": 0.1888, "log2FC_per_decade": -0.0239, "t_stat": -2.5379, "p_value": 0.0131, "fdr_qval": 0.9134, "neg_log10_pval": 1.8822}, {"symbol": "TNFRSF21", "mean_expr": 5.995, "log2FC_per_decade": -0.1415, "t_stat": -2.5373, "p_value": 0.0131, "fdr_qval": 0.9134, "neg_log10_pval": 1.8814}, {"symbol": "RNF44", "mean_expr": 1.9204, "log2FC_per_decade": -0.0878, "t_stat": -2.5361, "p_value": 0.0132, "fdr_qval": 0.9134, "neg_log10_pval": 1.8801}, {"symbol": "ZDHHC15", "mean_expr": 1.2048, "log2FC_per_decade": 0.0937, "t_stat": 2.5355, "p_value": 0.0132, "fdr_qval": 0.9134, "neg_log10_pval": 1.8794}], "photoGenes": [{"symbol": "CYP4B1", "mean_expr": -0.0134, "log2FC_per_decade": -0.7263, "t_stat": -8.5825, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 7.4123}, {"symbol": "BDKRB2", "mean_expr": 0.0404, "log2FC_per_decade": -0.2653, "t_stat": -8.3546, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 7.2272}, {"symbol": "CACNB2", "mean_expr": 0.0539, "log2FC_per_decade": 0.3058, "t_stat": 8.3112, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 7.1916}, {"symbol": "LOC728411", "mean_expr": -0.0113, "log2FC_per_decade": 0.3448, "t_stat": 8.2909, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 7.175}, {"symbol": "IQGAP2", "mean_expr": -0.0016, "log2FC_per_decade": -0.3911, "t_stat": -8.1272, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 7.0397}, {"symbol": "IL17D", "mean_expr": -0.0129, "log2FC_per_decade": 0.4889, "t_stat": 8.1095, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 7.0249}, {"symbol": "KIAA1467", "mean_expr": -0.0179, "log2FC_per_decade": -0.3742, "t_stat": -7.977, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 6.9141}, {"symbol": "ENPP1", "mean_expr": 0.0529, "log2FC_per_decade": 0.4577, "t_stat": 7.9712, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 6.9092}, {"symbol": "SFRP2", "mean_expr": -0.0238, "log2FC_per_decade": 0.9405, "t_stat": 7.8996, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 6.8489}, {"symbol": "OCIAD2", "mean_expr": -0.0181, "log2FC_per_decade": 0.2694, "t_stat": 7.8629, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 6.8179}, {"symbol": "COMP", "mean_expr": -0.1784, "log2FC_per_decade": 2.1651, "t_stat": 7.838, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 6.7968}, {"symbol": "DPYSL4", "mean_expr": 0.0569, "log2FC_per_decade": 0.2987, "t_stat": 7.7344, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 6.7086}, {"symbol": "KIAA1345", "mean_expr": -0.0026, "log2FC_per_decade": 0.1699, "t_stat": 7.732, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 6.7065}, {"symbol": "LOC440030", "mean_expr": -0.0438, "log2FC_per_decade": -0.308, "t_stat": -7.6778, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 6.6602}, {"symbol": "RPTN", "mean_expr": 0.1797, "log2FC_per_decade": -1.2945, "t_stat": -7.6519, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 6.638}, {"symbol": "PCSK1N", "mean_expr": 0.0303, "log2FC_per_decade": 0.4849, "t_stat": 7.6446, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 6.6317}, {"symbol": "TMEM98", "mean_expr": -0.1124, "log2FC_per_decade": 0.2665, "t_stat": 7.616, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 6.6071}, {"symbol": "DKK3", "mean_expr": -0.0264, "log2FC_per_decade": 0.5414, "t_stat": 7.606, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 6.5985}, {"symbol": "CRABP1", "mean_expr": -0.0239, "log2FC_per_decade": 0.6462, "t_stat": 7.546, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 6.5467}, {"symbol": "PTPRT", "mean_expr": 0.0336, "log2FC_per_decade": -0.2699, "t_stat": -7.5204, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 6.5245}, {"symbol": "SULF2", "mean_expr": 0.0281, "log2FC_per_decade": 0.3, "t_stat": 7.5, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 6.5068}, {"symbol": "LEPR", "mean_expr": 0.0734, "log2FC_per_decade": -0.3739, "t_stat": -7.429, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 6.445}, {"symbol": "KRT75", "mean_expr": -0.069, "log2FC_per_decade": 0.9896, "t_stat": 7.3962, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 6.4164}, {"symbol": "GPX7", "mean_expr": -0.0121, "log2FC_per_decade": 0.2399, "t_stat": 7.2873, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 6.3209}, {"symbol": "SPINT2", "mean_expr": 0.0147, "log2FC_per_decade": -0.1911, "t_stat": -7.2821, "p_value": 0.0, "fdr_qval": 0.0002, "neg_log10_pval": 6.3164}, {"symbol": "TSHZ2", "mean_expr": -0.0684, "log2FC_per_decade": -0.3419, "t_stat": -7.1839, "p_value": 0.0, "fdr_qval": 0.0003, "neg_log10_pval": 6.2296}, {"symbol": "DEFB1", "mean_expr": -0.0523, "log2FC_per_decade": -0.4404, "t_stat": -7.1471, "p_value": 0.0, "fdr_qval": 0.0003, "neg_log10_pval": 6.197}, {"symbol": "CTXN1", "mean_expr": -0.0249, "log2FC_per_decade": 0.3256, "t_stat": 7.114, "p_value": 0.0, "fdr_qval": 0.0003, "neg_log10_pval": 6.1675}, {"symbol": "FAM101B", "mean_expr": -0.0027, "log2FC_per_decade": 0.2417, "t_stat": 7.1031, "p_value": 0.0, "fdr_qval": 0.0003, "neg_log10_pval": 6.1578}, {"symbol": "VEGFA", "mean_expr": 0.0611, "log2FC_per_decade": -0.3705, "t_stat": -7.05, "p_value": 0.0, "fdr_qval": 0.0003, "neg_log10_pval": 6.1103}, {"symbol": "HOXA2", "mean_expr": 0.1127, "log2FC_per_decade": -0.6795, "t_stat": -7.0042, "p_value": 0.0, "fdr_qval": 0.0003, "neg_log10_pval": 6.0693}, {"symbol": "PET112L", "mean_expr": -0.0197, "log2FC_per_decade": -0.2582, "t_stat": -6.9828, "p_value": 0.0, "fdr_qval": 0.0003, "neg_log10_pval": 6.0501}, {"symbol": "COCH", "mean_expr": 0.5257, "log2FC_per_decade": 2.3582, "t_stat": 6.9442, "p_value": 0.0, "fdr_qval": 0.0003, "neg_log10_pval": 6.0155}, {"symbol": "SYNC1", "mean_expr": -0.033, "log2FC_per_decade": 0.3443, "t_stat": 6.9062, "p_value": 0.0, "fdr_qval": 0.0004, "neg_log10_pval": 5.9812}, {"symbol": "SCRN1", "mean_expr": -0.0329, "log2FC_per_decade": -0.3106, "t_stat": -6.8778, "p_value": 0.0, "fdr_qval": 0.0004, "neg_log10_pval": 5.9556}, {"symbol": "COL11A1", "mean_expr": 0.1957, "log2FC_per_decade": 1.0819, "t_stat": 6.8616, "p_value": 0.0, "fdr_qval": 0.0004, "neg_log10_pval": 5.9409}, {"symbol": "FN3KRP", "mean_expr": 0.0021, "log2FC_per_decade": -0.1334, "t_stat": -6.8521, "p_value": 0.0, "fdr_qval": 0.0004, "neg_log10_pval": 5.9323}, {"symbol": "KRT25", "mean_expr": -0.0457, "log2FC_per_decade": 1.0884, "t_stat": 6.8421, "p_value": 0.0, "fdr_qval": 0.0004, "neg_log10_pval": 5.9232}, {"symbol": "TCHH", "mean_expr": -0.0666, "log2FC_per_decade": 0.9416, "t_stat": 6.8371, "p_value": 0.0, "fdr_qval": 0.0004, "neg_log10_pval": 5.9187}, {"symbol": "TNMD", "mean_expr": 0.0996, "log2FC_per_decade": 0.8755, "t_stat": 6.8341, "p_value": 0.0, "fdr_qval": 0.0004, "neg_log10_pval": 5.916}, {"symbol": "CDH4", "mean_expr": 0.0188, "log2FC_per_decade": -0.3222, "t_stat": -6.8241, "p_value": 0.0, "fdr_qval": 0.0004, "neg_log10_pval": 5.9069}, {"symbol": "ANTXR1", "mean_expr": -0.0387, "log2FC_per_decade": 0.16, "t_stat": 6.8056, "p_value": 0.0, "fdr_qval": 0.0004, "neg_log10_pval": 5.8902}, {"symbol": "COL23A1", "mean_expr": 0.0523, "log2FC_per_decade": -0.396, "t_stat": -6.7691, "p_value": 0.0, "fdr_qval": 0.0004, "neg_log10_pval": 5.8569}, {"symbol": "SHISA2", "mean_expr": -0.0185, "log2FC_per_decade": 0.7867, "t_stat": 6.7233, "p_value": 0.0, "fdr_qval": 0.0004, "neg_log10_pval": 5.8152}, {"symbol": "KRT74", "mean_expr": -0.0136, "log2FC_per_decade": 1.1002, "t_stat": 6.6902, "p_value": 0.0, "fdr_qval": 0.0004, "neg_log10_pval": 5.7849}, {"symbol": "CASP9", "mean_expr": 0.042, "log2FC_per_decade": -0.3797, "t_stat": -6.6761, "p_value": 0.0, "fdr_qval": 0.0004, "neg_log10_pval": 5.772}, {"symbol": "SLC47A2", "mean_expr": 0.1765, "log2FC_per_decade": 1.3078, "t_stat": 6.6424, "p_value": 0.0, "fdr_qval": 0.0005, "neg_log10_pval": 5.7411}, {"symbol": "SKAP2", "mean_expr": -0.0483, "log2FC_per_decade": -0.4923, "t_stat": -6.6413, "p_value": 0.0, "fdr_qval": 0.0005, "neg_log10_pval": 5.7401}, {"symbol": "MYBPC1", "mean_expr": -0.0161, "log2FC_per_decade": -0.7796, "t_stat": -6.6211, "p_value": 0.0, "fdr_qval": 0.0005, "neg_log10_pval": 5.7216}, {"symbol": "GJA1", "mean_expr": 0.0165, "log2FC_per_decade": 0.3502, "t_stat": 6.5567, "p_value": 0.0, "fdr_qval": 0.0005, "neg_log10_pval": 5.6623}, {"symbol": "GPR161", "mean_expr": -0.0412, "log2FC_per_decade": 0.332, "t_stat": 6.5296, "p_value": 0.0, "fdr_qval": 0.0005, "neg_log10_pval": 5.6372}, {"symbol": "KRT71", "mean_expr": -0.0278, "log2FC_per_decade": 1.0699, "t_stat": 6.5159, "p_value": 0.0, "fdr_qval": 0.0005, "neg_log10_pval": 5.6246}, {"symbol": "CDH11", "mean_expr": 0.0228, "log2FC_per_decade": 0.4349, "t_stat": 6.513, "p_value": 0.0, "fdr_qval": 0.0005, "neg_log10_pval": 5.6219}, {"symbol": "PDE1A", "mean_expr": 0.0074, "log2FC_per_decade": 0.4175, "t_stat": 6.4724, "p_value": 0.0, "fdr_qval": 0.0006, "neg_log10_pval": 5.5843}, {"symbol": "NAP5", "mean_expr": 0.0054, "log2FC_per_decade": -0.3134, "t_stat": -6.4229, "p_value": 0.0, "fdr_qval": 0.0006, "neg_log10_pval": 5.5383}, {"symbol": "MXRA5", "mean_expr": -0.0397, "log2FC_per_decade": 0.4597, "t_stat": 6.4213, "p_value": 0.0, "fdr_qval": 0.0006, "neg_log10_pval": 5.5368}, {"symbol": "LHX2", "mean_expr": -0.0188, "log2FC_per_decade": 1.1617, "t_stat": 6.381, "p_value": 0.0, "fdr_qval": 0.0007, "neg_log10_pval": 5.4993}, {"symbol": "LAMC3", "mean_expr": 0.052, "log2FC_per_decade": 0.4124, "t_stat": 6.3101, "p_value": 0.0, "fdr_qval": 0.0008, "neg_log10_pval": 5.433}, {"symbol": "CA12", "mean_expr": -0.146, "log2FC_per_decade": -0.2871, "t_stat": -6.2841, "p_value": 0.0, "fdr_qval": 0.0008, "neg_log10_pval": 5.4087}, {"symbol": "CCDC92", "mean_expr": -0.0192, "log2FC_per_decade": 0.2077, "t_stat": 6.2562, "p_value": 0.0, "fdr_qval": 0.0008, "neg_log10_pval": 5.3825}, {"symbol": "CRIP2", "mean_expr": -0.0386, "log2FC_per_decade": 0.3171, "t_stat": 6.2176, "p_value": 0.0, "fdr_qval": 0.0009, "neg_log10_pval": 5.3462}, {"symbol": "MRPL2", "mean_expr": -0.0321, "log2FC_per_decade": -0.1493, "t_stat": -6.2161, "p_value": 0.0, "fdr_qval": 0.0009, "neg_log10_pval": 5.3447}, {"symbol": "KRTAP19-3", "mean_expr": 0.1179, "log2FC_per_decade": 0.5221, "t_stat": 6.2151, "p_value": 0.0, "fdr_qval": 0.0009, "neg_log10_pval": 5.3438}, {"symbol": "MGC39900", "mean_expr": -0.0001, "log2FC_per_decade": 0.3612, "t_stat": 6.201, "p_value": 0.0, "fdr_qval": 0.0009, "neg_log10_pval": 5.3306}, {"symbol": "DIO2", "mean_expr": -0.1357, "log2FC_per_decade": 0.8421, "t_stat": 6.1988, "p_value": 0.0, "fdr_qval": 0.0009, "neg_log10_pval": 5.3285}, {"symbol": "SCAMP4", "mean_expr": -0.0428, "log2FC_per_decade": -0.1562, "t_stat": -6.1649, "p_value": 0.0, "fdr_qval": 0.0009, "neg_log10_pval": 5.2965}, {"symbol": "SLC22A16", "mean_expr": 0.0571, "log2FC_per_decade": 0.4091, "t_stat": 6.1312, "p_value": 0.0, "fdr_qval": 0.001, "neg_log10_pval": 5.2646}, {"symbol": "ARG2", "mean_expr": 0.0703, "log2FC_per_decade": -0.2669, "t_stat": -6.1284, "p_value": 0.0, "fdr_qval": 0.001, "neg_log10_pval": 5.262}, {"symbol": "CA11", "mean_expr": -0.0982, "log2FC_per_decade": 0.238, "t_stat": 6.0936, "p_value": 0.0, "fdr_qval": 0.001, "neg_log10_pval": 5.229}, {"symbol": "MYOZ3", "mean_expr": 0.0107, "log2FC_per_decade": 0.2483, "t_stat": 6.074, "p_value": 0.0, "fdr_qval": 0.001, "neg_log10_pval": 5.2104}, {"symbol": "FOXL2", "mean_expr": 0.0154, "log2FC_per_decade": -0.3663, "t_stat": -6.0691, "p_value": 0.0, "fdr_qval": 0.001, "neg_log10_pval": 5.2058}, {"symbol": "DLL1", "mean_expr": -0.0465, "log2FC_per_decade": -0.3423, "t_stat": -6.057, "p_value": 0.0, "fdr_qval": 0.001, "neg_log10_pval": 5.1943}, {"symbol": "S100A3", "mean_expr": 0.0404, "log2FC_per_decade": 0.8169, "t_stat": 6.0566, "p_value": 0.0, "fdr_qval": 0.001, "neg_log10_pval": 5.1939}, {"symbol": "PCSK5", "mean_expr": 0.0505, "log2FC_per_decade": 0.425, "t_stat": 6.0537, "p_value": 0.0, "fdr_qval": 0.001, "neg_log10_pval": 5.1911}, {"symbol": "AMTN", "mean_expr": 0.091, "log2FC_per_decade": 0.4059, "t_stat": 6.0311, "p_value": 0.0, "fdr_qval": 0.0011, "neg_log10_pval": 5.1696}, {"symbol": "RSPO1", "mean_expr": 0.0389, "log2FC_per_decade": -0.5262, "t_stat": -6.0216, "p_value": 0.0, "fdr_qval": 0.0011, "neg_log10_pval": 5.1606}, {"symbol": "C5orf13", "mean_expr": 0.1256, "log2FC_per_decade": 0.3949, "t_stat": 5.9774, "p_value": 0.0, "fdr_qval": 0.0012, "neg_log10_pval": 5.1185}, {"symbol": "FNDC1", "mean_expr": -0.0058, "log2FC_per_decade": 0.4847, "t_stat": 5.9714, "p_value": 0.0, "fdr_qval": 0.0012, "neg_log10_pval": 5.1128}, {"symbol": "KRT28", "mean_expr": 0.0134, "log2FC_per_decade": 0.6979, "t_stat": 5.9709, "p_value": 0.0, "fdr_qval": 0.0012, "neg_log10_pval": 5.1123}, {"symbol": "FXYD3", "mean_expr": 0.0272, "log2FC_per_decade": -0.2485, "t_stat": -5.9558, "p_value": 0.0, "fdr_qval": 0.0012, "neg_log10_pval": 5.0978}, {"symbol": "CINP", "mean_expr": 0.0267, "log2FC_per_decade": -0.1304, "t_stat": -5.9513, "p_value": 0.0, "fdr_qval": 0.0012, "neg_log10_pval": 5.0936}, {"symbol": "DPEP1", "mean_expr": 0.0712, "log2FC_per_decade": 0.3635, "t_stat": 5.9375, "p_value": 0.0, "fdr_qval": 0.0012, "neg_log10_pval": 5.0804}, {"symbol": "CILP", "mean_expr": 0.0241, "log2FC_per_decade": 1.0176, "t_stat": 5.9247, "p_value": 0.0, "fdr_qval": 0.0012, "neg_log10_pval": 5.0681}, {"symbol": "KLHL28", "mean_expr": -0.0887, "log2FC_per_decade": 0.379, "t_stat": 5.8772, "p_value": 0.0, "fdr_qval": 0.0013, "neg_log10_pval": 5.0226}, {"symbol": "TSHZ3", "mean_expr": 0.0602, "log2FC_per_decade": 0.3906, "t_stat": 5.8697, "p_value": 0.0, "fdr_qval": 0.0014, "neg_log10_pval": 5.0154}, {"symbol": "GALE", "mean_expr": -0.0084, "log2FC_per_decade": -0.2649, "t_stat": -5.8641, "p_value": 0.0, "fdr_qval": 0.0014, "neg_log10_pval": 5.01}, {"symbol": "GRP", "mean_expr": -0.0146, "log2FC_per_decade": 0.2573, "t_stat": 5.8272, "p_value": 0.0, "fdr_qval": 0.0015, "neg_log10_pval": 4.9746}, {"symbol": "C7orf10", "mean_expr": 0.0452, "log2FC_per_decade": 0.328, "t_stat": 5.8103, "p_value": 0.0, "fdr_qval": 0.0015, "neg_log10_pval": 4.9583}, {"symbol": "SFRS7", "mean_expr": 0.0268, "log2FC_per_decade": -0.2631, "t_stat": -5.8005, "p_value": 0.0, "fdr_qval": 0.0015, "neg_log10_pval": 4.9489}, {"symbol": "GCLC", "mean_expr": 0.0035, "log2FC_per_decade": 0.2856, "t_stat": 5.79, "p_value": 0.0, "fdr_qval": 0.0015, "neg_log10_pval": 4.9388}, {"symbol": "PLXDC2", "mean_expr": 0.0216, "log2FC_per_decade": 0.2558, "t_stat": 5.7791, "p_value": 0.0, "fdr_qval": 0.0015, "neg_log10_pval": 4.9282}, {"symbol": "IL17RB", "mean_expr": 0.0228, "log2FC_per_decade": -0.3617, "t_stat": -5.7736, "p_value": 0.0, "fdr_qval": 0.0015, "neg_log10_pval": 4.9229}, {"symbol": "C17orf68", "mean_expr": -0.0021, "log2FC_per_decade": -0.1633, "t_stat": -5.7707, "p_value": 0.0, "fdr_qval": 0.0015, "neg_log10_pval": 4.9201}, {"symbol": "CSPG4", "mean_expr": -0.0089, "log2FC_per_decade": 0.2864, "t_stat": 5.7702, "p_value": 0.0, "fdr_qval": 0.0015, "neg_log10_pval": 4.9196}, {"symbol": "KRT27", "mean_expr": -0.0204, "log2FC_per_decade": 0.9827, "t_stat": 5.7355, "p_value": 0.0, "fdr_qval": 0.0016, "neg_log10_pval": 4.8861}, {"symbol": "FLJ35880", "mean_expr": 0.0363, "log2FC_per_decade": -0.8613, "t_stat": -5.7335, "p_value": 0.0, "fdr_qval": 0.0016, "neg_log10_pval": 4.8842}, {"symbol": "ADARB1", "mean_expr": 0.0359, "log2FC_per_decade": 0.2698, "t_stat": 5.7298, "p_value": 0.0, "fdr_qval": 0.0016, "neg_log10_pval": 4.8806}, {"symbol": "LUM", "mean_expr": -0.0683, "log2FC_per_decade": 0.5124, "t_stat": 5.7197, "p_value": 0.0, "fdr_qval": 0.0016, "neg_log10_pval": 4.8708}, {"symbol": "GDPD2", "mean_expr": 0.0037, "log2FC_per_decade": -0.3193, "t_stat": -5.7163, "p_value": 0.0, "fdr_qval": 0.0016, "neg_log10_pval": 4.8676}, {"symbol": "TMEM14A", "mean_expr": 0.0211, "log2FC_per_decade": 0.2072, "t_stat": 5.7156, "p_value": 0.0, "fdr_qval": 0.0016, "neg_log10_pval": 4.8669}, {"symbol": "CLIP3", "mean_expr": -0.1649, "log2FC_per_decade": 0.2306, "t_stat": 5.7089, "p_value": 0.0, "fdr_qval": 0.0016, "neg_log10_pval": 4.8604}, {"symbol": "BARX1", "mean_expr": 0.0217, "log2FC_per_decade": 0.7967, "t_stat": 5.7058, "p_value": 0.0, "fdr_qval": 0.0016, "neg_log10_pval": 4.8574}, {"symbol": "HOXC8", "mean_expr": 0.1389, "log2FC_per_decade": -0.6681, "t_stat": -5.7038, "p_value": 0.0, "fdr_qval": 0.0016, "neg_log10_pval": 4.8554}, {"symbol": "LOC644222", "mean_expr": 0.0368, "log2FC_per_decade": -0.1789, "t_stat": -5.7029, "p_value": 0.0, "fdr_qval": 0.0016, "neg_log10_pval": 4.8546}, {"symbol": "SGCA", "mean_expr": -0.1074, "log2FC_per_decade": 0.4613, "t_stat": 5.6869, "p_value": 0.0, "fdr_qval": 0.0016, "neg_log10_pval": 4.839}, {"symbol": "KRT85", "mean_expr": -0.1668, "log2FC_per_decade": 1.093, "t_stat": 5.6773, "p_value": 0.0, "fdr_qval": 0.0017, "neg_log10_pval": 4.8297}, {"symbol": "TIGA1", "mean_expr": -0.0237, "log2FC_per_decade": 0.2479, "t_stat": 5.66, "p_value": 0.0, "fdr_qval": 0.0017, "neg_log10_pval": 4.813}, {"symbol": "KRTAP19-7", "mean_expr": 0.0724, "log2FC_per_decade": 0.3466, "t_stat": 5.6311, "p_value": 0.0, "fdr_qval": 0.0018, "neg_log10_pval": 4.7849}, {"symbol": "PADI3", "mean_expr": 0.002, "log2FC_per_decade": 0.56, "t_stat": 5.6286, "p_value": 0.0, "fdr_qval": 0.0018, "neg_log10_pval": 4.7825}, {"symbol": "DLX1", "mean_expr": 0.174, "log2FC_per_decade": 0.718, "t_stat": 5.5993, "p_value": 0.0, "fdr_qval": 0.0019, "neg_log10_pval": 4.754}, {"symbol": "GCGR", "mean_expr": 0.0553, "log2FC_per_decade": -0.341, "t_stat": -5.5876, "p_value": 0.0, "fdr_qval": 0.0019, "neg_log10_pval": 4.7426}, {"symbol": "CLDN20", "mean_expr": 0.017, "log2FC_per_decade": 0.1565, "t_stat": 5.5863, "p_value": 0.0, "fdr_qval": 0.0019, "neg_log10_pval": 4.7413}, {"symbol": "FAM104A", "mean_expr": -0.0786, "log2FC_per_decade": 0.1216, "t_stat": 5.5745, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.7299}, {"symbol": "HAPLN1", "mean_expr": 0.105, "log2FC_per_decade": 0.4318, "t_stat": 5.5685, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.724}, {"symbol": "HOXC6", "mean_expr": 0.0799, "log2FC_per_decade": -1.3389, "t_stat": -5.5648, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.7204}, {"symbol": "HOXB2", "mean_expr": -0.0085, "log2FC_per_decade": -0.5877, "t_stat": -5.5636, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.7192}, {"symbol": "CCBE1", "mean_expr": -0.0082, "log2FC_per_decade": -0.2484, "t_stat": -5.5562, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.712}, {"symbol": "CCDC88A", "mean_expr": -0.022, "log2FC_per_decade": -0.18, "t_stat": -5.5462, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.7022}, {"symbol": "DPYSL3", "mean_expr": 0.007, "log2FC_per_decade": 0.243, "t_stat": 5.5438, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.6999}, {"symbol": "SOX4", "mean_expr": -0.0701, "log2FC_per_decade": 0.2602, "t_stat": 5.5407, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.6969}, {"symbol": "AHCYL1", "mean_expr": -0.0079, "log2FC_per_decade": -0.1072, "t_stat": -5.5325, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.6889}, {"symbol": "TNN", "mean_expr": 0.0652, "log2FC_per_decade": 0.3864, "t_stat": 5.5306, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.6871}, {"symbol": "COL8A2", "mean_expr": 0.06, "log2FC_per_decade": 0.3109, "t_stat": 5.5298, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.6862}, {"symbol": "CCDC136", "mean_expr": 0.0227, "log2FC_per_decade": 0.2255, "t_stat": 5.5238, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.6803}, {"symbol": "LOC441408", "mean_expr": 0.0083, "log2FC_per_decade": 0.2265, "t_stat": 5.5182, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.6749}, {"symbol": "BSN", "mean_expr": -0.0088, "log2FC_per_decade": 0.15, "t_stat": 5.5167, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.6734}, {"symbol": "MYO5C", "mean_expr": 0.0763, "log2FC_per_decade": -0.3678, "t_stat": -5.5149, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.6717}, {"symbol": "MAB21L2", "mean_expr": 0.4382, "log2FC_per_decade": 1.0804, "t_stat": 5.514, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.6708}, {"symbol": "SNCA", "mean_expr": 0.0399, "log2FC_per_decade": -0.3697, "t_stat": -5.4955, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.6527}, {"symbol": "GAS6", "mean_expr": 0.0329, "log2FC_per_decade": -0.3286, "t_stat": -5.4951, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.6524}, {"symbol": "STAMBP", "mean_expr": -0.0117, "log2FC_per_decade": -0.1808, "t_stat": -5.4951, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.6524}, {"symbol": "QSOX2", "mean_expr": 0.056, "log2FC_per_decade": -0.3766, "t_stat": -5.4913, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.6486}, {"symbol": "SLC16A9", "mean_expr": 0.0087, "log2FC_per_decade": 0.316, "t_stat": 5.49, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.6474}, {"symbol": "EDAR", "mean_expr": 0.1523, "log2FC_per_decade": -0.8543, "t_stat": -5.487, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.6444}, {"symbol": "APCDD1L", "mean_expr": 0.0495, "log2FC_per_decade": 0.5916, "t_stat": 5.4796, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.6371}, {"symbol": "LOC440925", "mean_expr": 0.0144, "log2FC_per_decade": -0.2188, "t_stat": -5.4743, "p_value": 0.0, "fdr_qval": 0.002, "neg_log10_pval": 4.6319}, {"symbol": "BAALC", "mean_expr": 0.0065, "log2FC_per_decade": 0.3608, "t_stat": 5.4675, "p_value": 0.0, "fdr_qval": 0.0021, "neg_log10_pval": 4.6253}, {"symbol": "HOXD10", "mean_expr": 0.0497, "log2FC_per_decade": -0.2285, "t_stat": -5.4606, "p_value": 0.0, "fdr_qval": 0.0021, "neg_log10_pval": 4.6185}, {"symbol": "MYO1D", "mean_expr": 0.0225, "log2FC_per_decade": -0.2503, "t_stat": -5.4455, "p_value": 0.0, "fdr_qval": 0.0021, "neg_log10_pval": 4.6038}, {"symbol": "EIF2AK3", "mean_expr": 0.1422, "log2FC_per_decade": -0.2012, "t_stat": -5.4448, "p_value": 0.0, "fdr_qval": 0.0021, "neg_log10_pval": 4.6031}, {"symbol": "NELL2", "mean_expr": 0.0297, "log2FC_per_decade": 0.4813, "t_stat": 5.4401, "p_value": 0.0, "fdr_qval": 0.0021, "neg_log10_pval": 4.5985}, {"symbol": "MTCP1", "mean_expr": 0.0116, "log2FC_per_decade": 0.1932, "t_stat": 5.4401, "p_value": 0.0, "fdr_qval": 0.0021, "neg_log10_pval": 4.5984}, {"symbol": "FGF14", "mean_expr": 0.0192, "log2FC_per_decade": 0.1824, "t_stat": 5.4342, "p_value": 0.0, "fdr_qval": 0.0021, "neg_log10_pval": 4.5927}, {"symbol": "C3orf72", "mean_expr": -0.0143, "log2FC_per_decade": -0.4051, "t_stat": -5.4329, "p_value": 0.0, "fdr_qval": 0.0021, "neg_log10_pval": 4.5914}, {"symbol": "FUT2", "mean_expr": -0.0101, "log2FC_per_decade": -0.4201, "t_stat": -5.4272, "p_value": 0.0, "fdr_qval": 0.0021, "neg_log10_pval": 4.5858}, {"symbol": "FAM36A", "mean_expr": 0.201, "log2FC_per_decade": 0.1759, "t_stat": 5.4217, "p_value": 0.0, "fdr_qval": 0.0022, "neg_log10_pval": 4.5804}, {"symbol": "BCS1L", "mean_expr": 0.0043, "log2FC_per_decade": -0.1501, "t_stat": -5.4125, "p_value": 0.0, "fdr_qval": 0.0022, "neg_log10_pval": 4.5714}, {"symbol": "IL1A", "mean_expr": 0.0393, "log2FC_per_decade": -0.3153, "t_stat": -5.4119, "p_value": 0.0, "fdr_qval": 0.0022, "neg_log10_pval": 4.5708}, {"symbol": "GAS2", "mean_expr": 0.0151, "log2FC_per_decade": 0.4403, "t_stat": 5.4104, "p_value": 0.0, "fdr_qval": 0.0022, "neg_log10_pval": 4.5694}, {"symbol": "HOOK2", "mean_expr": -0.05, "log2FC_per_decade": -0.2086, "t_stat": -5.3993, "p_value": 0.0, "fdr_qval": 0.0022, "neg_log10_pval": 4.5585}], "pathways": [{"Term": "Protein Secretion", "NES": 2.3683, "NOM p-val": 0.0, "FDR q-val": 0.0}, {"Term": "Epithelial Mesenchymal Transition", "NES": 1.5952, "NOM p-val": 0.0, "FDR q-val": 0.0422}, {"Term": "UV Response Dn", "NES": 1.4896, "NOM p-val": 0.0093, "FDR q-val": 0.0695}, {"Term": "Androgen Response", "NES": 1.3246, "NOM p-val": 0.0357, "FDR q-val": 0.1828}, {"Term": "Angiogenesis", "NES": 1.1143, "NOM p-val": 0.2869, "FDR q-val": 0.7035}, {"Term": "TGF-beta Signaling", "NES": 1.1059, "NOM p-val": 0.2647, "FDR q-val": 0.6202}, {"Term": "KRAS Signaling Up", "NES": 1.0603, "NOM p-val": 0.2913, "FDR q-val": 0.7227}, {"Term": "Mitotic Spindle", "NES": 1.019, "NOM p-val": 0.4105, "FDR q-val": 0.8181}, {"Term": "heme Metabolism", "NES": 1.0126, "NOM p-val": 0.4556, "FDR q-val": 0.7532}, {"Term": "Interferon Gamma Response", "NES": 0.9594, "NOM p-val": 0.625, "FDR q-val": 0.8975}, {"Term": "Coagulation", "NES": 0.8978, "NOM p-val": 0.774, "FDR q-val": 1.0}, {"Term": "Spermatogenesis", "NES": 0.8897, "NOM p-val": 0.7134, "FDR q-val": 0.9908}, {"Term": "Bile Acid Metabolism", "NES": 0.8883, "NOM p-val": 0.75, "FDR q-val": 0.9189}, {"Term": "Inflammatory Response", "NES": 0.8574, "NOM p-val": 0.8969, "FDR q-val": 0.931}, {"Term": "Interferon Alpha Response", "NES": 0.8275, "NOM p-val": 0.8824, "FDR q-val": 0.9254}], "explanations": [{"Pathway": "Protein Secretion", "Cohort": "GSE226189 (Chronological Age)", "NES": 2.368276352616724, "FDR_qval": 0.0, "Biological_Direction": "Enriched in Older Skin", "Plain_Language_Summary": "Aged fibroblasts exhibit hyperactive protein secretion, reflecting endoplasmic reticulum stress and the Senescence-Associated Secretory Phenotype (SASP) where senescent cells secrete inflammatory cytokines, chemokines, and matrix metalloproteinases.", "Literature_Lookup_Recommendation": "Search PubMed for: 'fibroblast senescence SASP secretome skin aging' (e.g., Copp\u00e9 et al., 2008; Campisi et al.)."}, {"Pathway": "Epithelial Mesenchymal Transition (EMT)", "Cohort": "GSE226189 (Chronological Age)", "NES": 1.5952452782142976, "FDR_qval": 0.0421792618629174, "Biological_Direction": "Enriched in Older Skin", "Plain_Language_Summary": "Includes genes involved in extracellular matrix remodeling, collagen degradation, and cellular plasticity. As dermal fibroblasts age, they shift into a more myofibroblastic, fibrotic state with altered matrix synthesis.", "Literature_Lookup_Recommendation": "Search PubMed for: 'dermal fibroblast aging extracellular matrix collagen EMT plasticity'."}, {"Pathway": "Cholesterol Homeostasis", "Cohort": "GSE226189 (Chronological Age)", "NES": -1.6859113827059071, "FDR_qval": 0.0275641619568238, "Biological_Direction": "Downregulated in Older Skin", "Plain_Language_Summary": "Lipid and sterol synthesis pathways decline significantly in aged dermal and epidermal cells. This correlates with the clinically documented breakdown of skin barrier function, reduced sebum production, and increased dryness.", "Literature_Lookup_Recommendation": "Search PubMed for: 'skin lipid metabolism aging cholesterol barrier function' (e.g., Zouboulis et al.)."}, {"Pathway": "Wnt-beta Catenin Signaling", "Cohort": "GSE226189 (Chronological Age)", "NES": -1.43939422658079, "FDR_qval": 0.1500277957935699, "Biological_Direction": "Downregulated in Older Skin", "Plain_Language_Summary": "Wnt signaling maintains skin cell identity and regenerative priming. Its loss with age leads to reduced fibroblast density and compromised dermal replenishment.", "Literature_Lookup_Recommendation": "Search PubMed for: 'dermal fibroblast loss of priming Wnt signaling skin aging' (e.g., Sol\u00e9-Boldo et al., Cell Reports 2020)."}], "patients": [{"sample_id": "GSM7067566", "age": 22, "sex": "Male", "predicted_age_cv": 48.5}, {"sample_id": "GSM7067567", "age": 23, "sex": "Male", "predicted_age_cv": 43.71}, {"sample_id": "GSM7067568", "age": 25, "sex": "Female", "predicted_age_cv": 48.54}, {"sample_id": "GSM7067569", "age": 25, "sex": "Male", "predicted_age_cv": 28.13}, {"sample_id": "GSM7067570", "age": 26, "sex": "Female", "predicted_age_cv": 46.55}, {"sample_id": "GSM7067571", "age": 27, "sex": "Female", "predicted_age_cv": 39.81}, {"sample_id": "GSM7067572", "age": 27, "sex": "Male", "predicted_age_cv": 46.13}, {"sample_id": "GSM7067574", "age": 28, "sex": "Male", "predicted_age_cv": 37.61}, {"sample_id": "GSM7067575", "age": 28, "sex": "Male", "predicted_age_cv": 34.65}, {"sample_id": "GSM7067573", "age": 28, "sex": "Female", "predicted_age_cv": 40.06}, {"sample_id": "GSM7067576", "age": 29, "sex": "Male", "predicted_age_cv": 30.8}, {"sample_id": "GSM7067577", "age": 30, "sex": "Male", "predicted_age_cv": 41.06}, {"sample_id": "GSM7067578", "age": 31, "sex": "Female", "predicted_age_cv": 33.37}, {"sample_id": "GSM7067579", "age": 31, "sex": "Male", "predicted_age_cv": 35.4}, {"sample_id": "GSM7067580", "age": 31, "sex": "Male", "predicted_age_cv": 33.01}, {"sample_id": "GSM7067581", "age": 31, "sex": "Male", "predicted_age_cv": 56.78}, {"sample_id": "GSM7067582", "age": 31, "sex": "Male", "predicted_age_cv": 35.84}, {"sample_id": "GSM7067584", "age": 32, "sex": "Male", "predicted_age_cv": 54.05}, {"sample_id": "GSM7067583", "age": 32, "sex": "Female", "predicted_age_cv": 47.43}, {"sample_id": "GSM7067587", "age": 35, "sex": "Male", "predicted_age_cv": 33.78}, {"sample_id": "GSM7067585", "age": 35, "sex": "Female", "predicted_age_cv": 44.89}, {"sample_id": "GSM7067586", "age": 35, "sex": "Male", "predicted_age_cv": 50.06}, {"sample_id": "GSM7067588", "age": 37, "sex": "Male", "predicted_age_cv": 46.95}, {"sample_id": "GSM7067589", "age": 38, "sex": "Female", "predicted_age_cv": 58.02}, {"sample_id": "GSM7067590", "age": 38, "sex": "Female", "predicted_age_cv": 51.57}, {"sample_id": "GSM7067591", "age": 38, "sex": "Male", "predicted_age_cv": 57.03}, {"sample_id": "GSM7067592", "age": 39, "sex": "Male", "predicted_age_cv": 50.12}, {"sample_id": "GSM7067595", "age": 42, "sex": "Male", "predicted_age_cv": 43.83}, {"sample_id": "GSM7067593", "age": 42, "sex": "Female", "predicted_age_cv": 44.6}, {"sample_id": "GSM7067594", "age": 42, "sex": "Female", "predicted_age_cv": 47.01}, {"sample_id": "GSM7067596", "age": 45, "sex": "Male", "predicted_age_cv": 36.58}, {"sample_id": "GSM7067597", "age": 45, "sex": "Male", "predicted_age_cv": 60.1}, {"sample_id": "GSM7067598", "age": 47, "sex": "Female", "predicted_age_cv": 36.14}, {"sample_id": "GSM7067599", "age": 47, "sex": "Male", "predicted_age_cv": 47.15}, {"sample_id": "GSM7067600", "age": 48, "sex": "Female", "predicted_age_cv": 25.47}, {"sample_id": "GSM7067601", "age": 48, "sex": "Female", "predicted_age_cv": 46.66}, {"sample_id": "GSM7067602", "age": 49, "sex": "Male", "predicted_age_cv": 39.87}, {"sample_id": "GSM7067603", "age": 51, "sex": "Male", "predicted_age_cv": 51.95}, {"sample_id": "GSM7067607", "age": 52, "sex": "Male", "predicted_age_cv": 52.4}, {"sample_id": "GSM7067606", "age": 52, "sex": "Male", "predicted_age_cv": 65.32}, {"sample_id": "GSM7067605", "age": 52, "sex": "Female", "predicted_age_cv": 55.69}, {"sample_id": "GSM7067604", "age": 52, "sex": "Female", "predicted_age_cv": 51.91}, {"sample_id": "GSM7067608", "age": 53, "sex": "Female", "predicted_age_cv": 61.59}, {"sample_id": "GSM7067609", "age": 54, "sex": "Male", "predicted_age_cv": 48.56}, {"sample_id": "GSM7067610", "age": 55, "sex": "Male", "predicted_age_cv": 42.07}, {"sample_id": "GSM7067611", "age": 56, "sex": "Female", "predicted_age_cv": 42.31}, {"sample_id": "GSM7067612", "age": 57, "sex": "Male", "predicted_age_cv": 46.63}, {"sample_id": "GSM7067613", "age": 58, "sex": "Female", "predicted_age_cv": 63.79}, {"sample_id": "GSM7067614", "age": 60, "sex": "Male", "predicted_age_cv": 66.92}, {"sample_id": "GSM7067616", "age": 61, "sex": "Female", "predicted_age_cv": 61.22}, {"sample_id": "GSM7067615", "age": 61, "sex": "Female", "predicted_age_cv": 44.3}, {"sample_id": "GSM7067617", "age": 62, "sex": "Female", "predicted_age_cv": 52.96}, {"sample_id": "GSM7067618", "age": 63, "sex": "Female", "predicted_age_cv": 60.62}, {"sample_id": "GSM7067619", "age": 63, "sex": "Male", "predicted_age_cv": 58.83}, {"sample_id": "GSM7067620", "age": 65, "sex": "Female", "predicted_age_cv": 53.31}, {"sample_id": "GSM7067621", "age": 66, "sex": "Female", "predicted_age_cv": 48.2}, {"sample_id": "GSM7067622", "age": 67, "sex": "Female", "predicted_age_cv": 67.62}, {"sample_id": "GSM7067623", "age": 67, "sex": "Male", "predicted_age_cv": 103.31}, {"sample_id": "GSM7067624", "age": 67, "sex": "Male", "predicted_age_cv": 62.8}, {"sample_id": "GSM7067625", "age": 69, "sex": "Female", "predicted_age_cv": 69.84}, {"sample_id": "GSM7067627", "age": 70, "sex": "Male", "predicted_age_cv": 51.81}, {"sample_id": "GSM7067626", "age": 70, "sex": "Female", "predicted_age_cv": 52.25}, {"sample_id": "GSM7067628", "age": 71, "sex": "Female", "predicted_age_cv": 62.05}, {"sample_id": "GSM7067629", "age": 72, "sex": "Female", "predicted_age_cv": 62.35}, {"sample_id": "GSM7067630", "age": 72, "sex": "Female", "predicted_age_cv": 79.64}, {"sample_id": "GSM7067631", "age": 72, "sex": "Male", "predicted_age_cv": 51.04}, {"sample_id": "GSM7067632", "age": 72, "sex": "Male", "predicted_age_cv": 51.34}, {"sample_id": "GSM7067633", "age": 72, "sex": "Male", "predicted_age_cv": 69.94}, {"sample_id": "GSM7067634", "age": 72, "sex": "Male", "predicted_age_cv": 60.98}, {"sample_id": "GSM7067635", "age": 73, "sex": "Female", "predicted_age_cv": 83.06}, {"sample_id": "GSM7067636", "age": 76, "sex": "Male", "predicted_age_cv": 71.72}, {"sample_id": "GSM7067637", "age": 77, "sex": "Female", "predicted_age_cv": 66.46}, {"sample_id": "GSM7067638", "age": 78, "sex": "Female", "predicted_age_cv": 77.28}, {"sample_id": "GSM7067639", "age": 80, "sex": "Female", "predicted_age_cv": 75.28}, {"sample_id": "GSM7067640", "age": 80, "sex": "Female", "predicted_age_cv": 68.06}, {"sample_id": "GSM7067641", "age": 81, "sex": "Male", "predicted_age_cv": 82.31}, {"sample_id": "GSM7067642", "age": 81, "sex": "Male", "predicted_age_cv": 67.87}, {"sample_id": "GSM7067643", "age": 81, "sex": "Male", "predicted_age_cv": 80.74}, {"sample_id": "GSM7067644", "age": 83, "sex": "Male", "predicted_age_cv": 58.82}, {"sample_id": "GSM7067645", "age": 85, "sex": "Male", "predicted_age_cv": 65.27}, {"sample_id": "GSM7067646", "age": 86, "sex": "Male", "predicted_age_cv": 71.06}, {"sample_id": "GSM7067647", "age": 89, "sex": "Male", "predicted_age_cv": 54.13}], "coefficients": [{"symbol": "OLFM1", "coefficient": 1.1845}, {"symbol": "ZNF518B", "coefficient": -1.0047}, {"symbol": "SNORD13", "coefficient": 0.9118}, {"symbol": "TAS2R10", "coefficient": -0.8894}, {"symbol": "FNDC5", "coefficient": -0.8275}, {"symbol": "SEC14L1", "coefficient": -0.7956}, {"symbol": "TRAPPC2", "coefficient": -0.7582}, {"symbol": "VEZT", "coefficient": 0.7578}, {"symbol": "FBXW7", "coefficient": 0.7468}, {"symbol": "CNTN4", "coefficient": -0.7363}, {"symbol": "SFRP4", "coefficient": 0.7047}, {"symbol": "LZIC", "coefficient": 0.7009}, {"symbol": "SLC6A1", "coefficient": -0.6867}, {"symbol": "EYA1", "coefficient": -0.6855}, {"symbol": "HYAL1", "coefficient": 0.6854}, {"symbol": "MAP3K1", "coefficient": -0.6767}, {"symbol": "THSD7B", "coefficient": 0.6619}, {"symbol": "FGF9", "coefficient": 0.6599}, {"symbol": "CROT", "coefficient": 0.6547}, {"symbol": "FBXO46", "coefficient": -0.6487}, {"symbol": "PDZD4", "coefficient": -0.6417}, {"symbol": "HSPA2", "coefficient": -0.6384}, {"symbol": "RELN", "coefficient": 0.6286}, {"symbol": "XKR6", "coefficient": -0.6237}, {"symbol": "KCTD20", "coefficient": 0.6235}]};
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+      
+      const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick').includes(tabId));
+      if (activeBtn) activeBtn.classList.add('active');
+      
+      const activePane = document.getElementById(tabId);
+      if (activePane) activePane.classList.add('active');
+
+      if (tabId === 'tab-volcano') updateVolcanoPlot();
+      if (tabId === 'tab-clock') updateGauge();
+      if (tabId === 'tab-pathways') renderPathways();
+    }
+
+    function updateVolcanoPlot() {
+      const cohort = document.getElementById('cohortSelect').value;
+      const fcThresh = parseFloat(document.getElementById('fcSlider').value);
+      const pvalThresh = parseFloat(document.getElementById('pvalSlider').value);
+      const searchTerm = document.getElementById('geneSearch').value.trim().toUpperCase();
+
+      document.getElementById('fcVal').innerText = fcThresh.toFixed(2);
+      document.getElementById('pvalVal').innerText = pvalThresh.toFixed(1);
+
+      const dataset = cohort === 'age' ? DB.ageGenes : DB.photoGenes;
+
+      const x = [];
+      const y = [];
+      const text = [];
+      const colors = [];
+      const filteredGenes = [];
+
+      dataset.forEach(g => {
+        const isUp = g.log2FC_per_decade >= fcThresh && g.neg_log10_pval >= pvalThresh;
+        const isDown = g.log2FC_per_decade <= -fcThresh && g.neg_log10_pval >= pvalThresh;
+        const isMatch = searchTerm ? g.symbol.includes(searchTerm) : true;
+
+        let col = '#475569';
+        if (isUp) col = '#f43f5e';
+        else if (isDown) col = '#38bdf8';
+
+        if (searchTerm && isMatch) {
+          col = '#eab308'; // highlight yellow
+        }
+
+        x.push(g.log2FC_per_decade);
+        y.push(g.neg_log10_pval);
+        text.push(`<b>${g.symbol}</b><br>Log2 FC: ${g.log2FC_per_decade}<br>-Log10 P-val: ${g.neg_log10_pval}<br>FDR: ${g.fdr_qval}`);
+        colors.push(col);
+
+        if ((isUp || isDown) && isMatch) {
+          filteredGenes.push(g);
+        }
+      });
+
+      document.getElementById('filterCount').innerText = filteredGenes.length;
+
+      const trace = {
+        x: x,
+        y: y,
+        text: text,
+        mode: 'markers',
+        type: 'scatter',
+        hoverinfo: 'text',
+        marker: {
+          color: colors,
+          size: 7,
+          opacity: 0.8
+        }
+      };
+
+      const layout = {
+        title: cohort === 'age' ? 'Chronological Ageing Volcano Plot (GSE226189)' : 'Photoaging Volcano Plot (GSE38308: Pre vs Post-Auricular)',
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#cbd5e1', family: 'Plus Jakarta Sans' },
+        xaxis: {
+          title: cohort === 'age' ? 'Slope / Effect per Decade (Log2 FC)' : 'Log2 Fold Change (Sun-Exposed vs Protected)',
+          gridcolor: 'rgba(255,255,255,0.06)',
+          zerolinecolor: 'rgba(255,255,255,0.2)'
+        },
+        yaxis: {
+          title: '-Log10(P-value)',
+          gridcolor: 'rgba(255,255,255,0.06)',
+          zerolinecolor: 'rgba(255,255,255,0.2)'
+        },
+        shapes: [
+          { type: 'line', x0: -fcThresh, x1: -fcThresh, y0: 0, y1: Math.max(...y), line: { color: 'rgba(56,189,248,0.4)', dash: 'dash' } },
+          { type: 'line', x0: fcThresh, x1: fcThresh, y0: 0, y1: Math.max(...y), line: { color: 'rgba(244,63,94,0.4)', dash: 'dash' } },
+          { type: 'line', x0: Math.min(...x), x1: Math.max(...x), y0: pvalThresh, y1: pvalThresh, line: { color: 'rgba(255,255,255,0.3)', dash: 'dot' } }
+        ],
+        margin: { t: 40, r: 20, b: 50, l: 50 }
+      };
+
+      Plotly.react('volcanoPlot', [trace], layout, { responsive: true });
+
+      // Update Table
+      const tbody = document.getElementById('geneTableBody');
+      tbody.innerHTML = '';
+      filteredGenes.slice(0, 20).forEach(g => {
+        const row = document.createElement('tr');
+        const direction = g.log2FC_per_decade > 0 ? 
+          '<span style="color: #f43f5e; font-weight:700;">▲ Upregulated</span>' : 
+          '<span style="color: #38bdf8; font-weight:700;">▼ Downregulated</span>';
+        row.innerHTML = `
+          <td style="color: #ffffff; font-weight: 700;">${g.symbol}</td>
+          <td>${g.log2FC_per_decade}</td>
+          <td>${g.mean_expr}</td>
+          <td>${g.t_stat}</td>
+          <td>${g.p_value.toExponential(2)}</td>
+          <td>${g.fdr_qval.toExponential(2)}</td>
+          <td>${direction}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function initPatientOptions() {
+      const select = document.getElementById('patientSelect');
+      select.innerHTML = '';
+      DB.patients.forEach((p, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.innerText = `${p.sample_id} — Age: ${p.age}y (${p.sex})`;
+        select.appendChild(opt);
+      });
+      updateGauge();
+    }
+
+    function updateGauge() {
+      const select = document.getElementById('patientSelect');
+      const idx = parseInt(select.value) || 0;
+      const patient = DB.patients[idx] || DB.patients[0];
+
+      const actualAge = patient.age;
+      const predAge = patient.predicted_age_cv;
+      const delta = predAge - actualAge;
+
+      const data = [
+        {
+          type: "indicator",
+          mode: "gauge+number+delta",
+          value: predAge,
+          delta: { reference: actualAge, position: "top", valueformat: "+.1f yrs" },
+          title: { text: `Predicted Age for ${patient.sample_id}`, font: { size: 20, color: '#f8fafc' } },
+          gauge: {
+            axis: { range: [10, 100], tickcolor: "#94a3b8" },
+            bar: { color: "#38bdf8" },
+            bgcolor: "rgba(255,255,255,0.05)",
+            borderwidth: 1,
+            bordercolor: "rgba(255,255,255,0.1)",
+            steps: [
+              { range: [10, 40], color: "rgba(16, 185, 129, 0.15)" },
+              { range: [40, 70], color: "rgba(56, 189, 248, 0.15)" },
+              { range: [70, 100], color: "rgba(244, 63, 94, 0.15)" }
+            ],
+            threshold: {
+              line: { color: "#f43f5e", width: 4 },
+              thickness: 0.8,
+              value: actualAge
+            }
+          }
+        }
+      ];
+
+      const layout = {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#cbd5e1', family: 'Plus Jakarta Sans' },
+        margin: { t: 40, r: 30, b: 30, l: 30 }
+      };
+
+      Plotly.react('gaugePlot', data, layout, { responsive: true });
+
+      // Details
+      document.getElementById('patientDetails').innerHTML = `
+        <div style="display: flex; justify-content: space-around; text-align: center;">
+          <div><span style="color:var(--muted)">Donor Sex:</span> <b style="color:#fff;">${patient.sex}</b></div>
+          <div><span style="color:var(--muted)">Chronological Age:</span> <b style="color:#f43f5e;">${actualAge} years</b></div>
+          <div><span style="color:var(--muted)">Transcriptomic Age:</span> <b style="color:var(--cyan);">${predAge.toFixed(1)} years</b></div>
+          <div><span style="color:var(--muted)">Delta Error:</span> <b style="color:${Math.abs(delta) < 5 ? 'var(--emerald)' : '#cbd5e1'};">${delta >= 0 ? '+' : ''}${delta.toFixed(1)}y</b></div>
+        </div>
+      `;
+
+      // Render top weights
+      const coefTbody = document.getElementById('coefTableBody');
+      coefTbody.innerHTML = '';
+      DB.coefficients.forEach(c => {
+        const r = document.createElement('tr');
+        const col = c.coefficient > 0 ? 'var(--rose)' : 'var(--cyan)';
+        r.innerHTML = `
+          <td style="color:#fff; font-weight:700;">${c.symbol}</td>
+          <td style="color:${col}; font-weight:700;">${c.coefficient > 0 ? '+' : ''}${c.coefficient}</td>
+        `;
+        coefTbody.appendChild(r);
+      });
+    }
+
+    function renderPathways() {
+      const terms = DB.pathways.map(p => p.Term);
+      const nes = DB.pathways.map(p => p.NES);
+      const colors = nes.map(n => n > 0 ? '#f43f5e' : '#38bdf8');
+
+      const trace = {
+        x: nes,
+        y: terms,
+        type: 'bar',
+        orientation: 'h',
+        marker: { color: colors }
+      };
+
+      const layout = {
+        title: 'Top MSigDB Hallmark Enriched Pathways in Chronological Ageing',
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#cbd5e1', family: 'Plus Jakarta Sans' },
+        xaxis: {
+          title: 'Normalized Enrichment Score (NES)',
+          gridcolor: 'rgba(255,255,255,0.06)',
+          zerolinecolor: 'rgba(255,255,255,0.3)'
+        },
+        yaxis: {
+          autorange: 'reversed',
+          tickfont: { size: 12 }
+        },
+        margin: { t: 40, r: 20, b: 50, l: 240 }
+      };
+
+      Plotly.react('pathwayPlot', [trace], layout, { responsive: true });
+
+      // Cards
+      const container = document.getElementById('pathwayCards');
+      container.innerHTML = '';
+      DB.explanations.forEach(e => {
+        const card = document.createElement('div');
+        card.className = 'pathway-card';
+        card.style.borderLeftColor = e.NES > 0 ? 'var(--rose)' : 'var(--cyan)';
+        card.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="font-size: 18px; color: #fff;">${e.Pathway}</h4>
+            <span style="font-family:'JetBrains Mono'; font-weight:700; color:${e.NES > 0 ? 'var(--rose)' : 'var(--cyan)'}">
+              NES: ${e.NES.toFixed(2)}
+            </span>
+          </div>
+          <div style="font-size: 12px; color: var(--muted); margin-bottom: 8px;">Direction: <b>${e.Biological_Direction}</b> (FDR: ${e.FDR_qval.toExponential(2)})</div>
+          <p style="font-size: 14px; color: #cbd5e1; line-height: 1.6; margin-bottom: 12px;">${e.Plain_Language_Summary}</p>
+          <div style="font-size: 12px; color: #64748b;">${e.Literature_Lookup_Recommendation}</div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // Initialise on load
+    window.addEventListener('DOMContentLoaded', () => {
+      initPatientOptions();
+      updateVolcanoPlot();
+      renderPathways();
+    });
+  </script>
+</body>
+</html>
