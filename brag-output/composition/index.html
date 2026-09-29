@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>SkinAge Atlas — Launch Demo</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html, body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #070a12;
+        color: #f8fafc;
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: radial-gradient(circle at 50% 0%, #0f1d38 0%, #070a12 70%);
+      }
+      .bg-grid {
+        position: absolute;
+        inset: 0;
+        background-size: 60px 60px;
+        background-image: 
+          linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        mask-image: radial-gradient(circle at 50% 50%, black 40%, transparent 80%);
+      }
+      .glow-orb {
+        position: absolute;
+        width: 650px;
+        height: 650px;
+        border-radius: 50%;
+        filter: blur(140px);
+        opacity: 0.25;
+        pointer-events: none;
+      }
+      .glow-cyan {
+        top: -100px;
+        left: 20%;
+        background: #38bdf8;
+      }
+      .glow-rose {
+        bottom: -150px;
+        right: 15%;
+        background: #f43f5e;
+      }
+      .scene {
+        position: absolute;
+        inset: 0;
+        width: 1920px;
+        height: 1080px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 80px 100px;
+        opacity: 0;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 18px;
+        border-radius: 9999px;
+        background: rgba(56, 189, 248, 0.1);
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        color: #38bdf8;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 24px;
+      }
+      .badge-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #38bdf8;
+        box-shadow: 0 0 10px #38bdf8;
+      }
+      .badge-rose {
+        background: rgba(244, 63, 94, 0.1);
+        border-color: rgba(244, 63, 94, 0.3);
+        color: #f43f5e;
+      }
+      .badge-rose .badge-dot {
+        background: #f43f5e;
+        box-shadow: 0 0 10px #f43f5e;
+      }
+      .badge-green {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: rgba(16, 185, 129, 0.3);
+        color: #10b981;
+      }
+      .badge-green .badge-dot {
+        background: #10b981;
+        box-shadow: 0 0 10px #10b981;
+      }
+      .hero-title {
+        font-size: 68px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+        text-align: center;
+        max-width: 1400px;
+        background: linear-gradient(180deg, #ffffff 30%, #cbd5e1 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 24px;
+      }
+      .hero-sub {
+        font-size: 26px;
+        color: #94a3b8;
+        text-align: center;
+        max-width: 1000px;
+        line-height: 1.5;
+        font-weight: 500;
+      }
+      .glass-card {
+        background: rgba(19, 27, 46, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+        padding: 36px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(20px);
+      }
+      .img-frame {
+        border-radius: 18px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+        background: #0f172a;
+      }
+      .metric-value {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 54px;
+        font-weight: 800;
+        color: #38bdf8;
+        line-height: 1;
+        margin-bottom: 8px;
+      }
+      .metric-label {
+        font-size: 18px;
+        color: #94a3b8;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .flex-row {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 60px;
+        width: 100%;
+        max-width: 1650px;
+      }
+      .flex-col {
+        display: flex;
+        flex-direction: column;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="20"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div class="bg-grid"></div>
+      <div class="glow-orb glow-cyan" data-layout-allow-overflow="true"></div>
+      <div class="glow-orb glow-rose" data-layout-allow-overflow="true"></div>
+
+      <!-- Audio Elements -->
+      <audio id="audio-bgm" src="assets/bgm.mp3" data-start="0" data-duration="20" data-volume="0.8" data-fade-in="0.4" data-fade-out="1.5"></audio>
+      <audio id="sfx-bell-1" src="assets/bell.ogg" data-start="0.1" data-duration="0.2" data-volume="0.5"></audio>
+      <audio id="sfx-switch-1" src="assets/switch.ogg" data-start="4.0" data-duration="0.4" data-volume="0.4"></audio>
+      <audio id="sfx-switch-2" src="assets/switch.ogg" data-start="8.0" data-duration="0.4" data-volume="0.4"></audio>
+      <audio id="sfx-impact-1" src="assets/impact.ogg" data-start="12.0" data-duration="0.3" data-volume="0.5"></audio>
+      <audio id="sfx-bell-2" src="assets/bell.ogg" data-start="16.0" data-duration="0.2" data-volume="0.6"></audio>
+
+      <!-- SCENE 1: HOOK (0 - 4s) -->
+      <div id="scene1" class="scene">
+        <div class="badge">
+          <div class="badge-dot"></div>
+          Transcriptomics • Machine Learning • Drug Discovery
+        </div>
+        <h1 class="hero-title">Can AI Predict True Human Skin Age From RNA-seq?</h1>
+        <p class="hero-sub">
+          Introducing <b style="color: #38bdf8;">SkinAge Atlas</b>: An end-to-end computational biology platform analyzing chronological senescence and UV photoaging across independent human cohorts.
+        </p>
+        <div style="display: flex; gap: 30px; margin-top: 48px;">
+          <div class="glass-card" style="padding: 24px 36px; text-align: center;">
+            <div class="metric-value">124</div>
+            <div class="metric-label">Human Donors</div>
+          </div>
+          <div class="glass-card" style="padding: 24px 36px; text-align: center;">
+            <div class="metric-value">20,798</div>
+            <div class="metric-label">Modeled Genes</div>
+          </div>
+          <div class="glass-card" style="padding: 24px 36px; text-align: center;">
+            <div class="metric-value" style="color: #10b981;">100%</div>
+            <div class="metric-label">GEO Verified</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 2: COHORTS & VOLCANO PLOT (4 - 8s) -->
+      <div id="scene2" class="scene">
+        <div class="flex-row">
+          <div class="flex-col" style="flex: 1;">
+            <div class="badge badge-rose">
+              <div class="badge-dot"></div>
+              Differential Expression Modeling
+            </div>
+            <h2 style="font-size: 52px; font-weight: 800; line-height: 1.15; margin-bottom: 20px;">
+              Mapping Chronological & Extrinsic Photoaging
+            </h2>
+            <p style="font-size: 20px; color: #94a3b8; line-height: 1.6; margin-bottom: 30px;">
+              Continuous linear regression adjusted for biological sex in primary fibroblasts (GSE226189), paired with intra-individual sun-exposed vs protected facial biopsies (GSE38308).
+            </p>
+            <div style="display: flex; gap: 20px;">
+              <div class="glass-card" style="flex: 1; padding: 24px;">
+                <div style="color: #f66880; font-size: 38px; font-weight: 800; font-family: 'JetBrains Mono';">1,269</div>
+                <div class="metric-label" style="font-size: 14px;">Photoaging Genes (FDR < 0.05)</div>
+              </div>
+              <div class="glass-card" style="flex: 1; padding: 24px;">
+                <div style="color: #38bdf8; font-size: 38px; font-weight: 800; font-family: 'JetBrains Mono';">CDH10 / PTPRB</div>
+                <div class="metric-label" style="font-size: 14px;">Top Senescence Drivers</div>
+              </div>
+            </div>
+          </div>
+          <div class="img-frame" data-layout-allow-overflow="true" style="flex: 1.1; max-height: 600px; display: flex; align-items: center; justify-content: center;">
+            <img src="assets/fig_volcano.png" style="width: 100%; height: auto; display: block;" alt="Age Volcano Plot" />
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 3: GSEA PATHWAY DISCOVERY (8 - 12s) -->
+      <div id="scene3" class="scene">
+        <div class="flex-row">
+          <div class="img-frame" data-layout-allow-overflow="true" style="flex: 1.1; max-height: 600px; display: flex; align-items: center; justify-content: center;">
+            <img src="assets/fig_gsea.png" style="width: 100%; height: auto; display: block;" alt="GSEA Hallmark Pathways" />
+          </div>
+          <div class="flex-col" style="flex: 1;">
+            <div class="badge badge-green">
+              <div class="badge-dot"></div>
+              Functional Pathway Enrichment
+            </div>
+            <h2 style="font-size: 52px; font-weight: 800; line-height: 1.15; margin-bottom: 20px;">
+              Unraveling the Senescence Secretome
+            </h2>
+            <div class="glass-card" style="margin-bottom: 20px; border-left: 4px solid #f43f5e;">
+              <h4 style="font-size: 22px; color: #f8fafc; margin-bottom: 6px;">🔥 Protein Secretion & SASP</h4>
+              <p style="font-size: 16px; color: #94a3b8;">
+                Robust upregulation (<b>NES = +2.37, FDR < 0.001</b>) driving chronic pro-inflammatory signaling and extracellular matrix degradation.
+              </p>
+            </div>
+            <div class="glass-card" style="border-left: 4px solid #38bdf8;">
+              <h4 style="font-size: 22px; color: #f8fafc; margin-bottom: 6px;">🛡️ Cholesterol Homeostasis Collapse</h4>
+              <p style="font-size: 16px; color: #94a3b8;">
+                Significant downregulation (<b>NES = -1.69, FDR = 0.028</b>) identifying molecular breakdown of skin lipid barrier integrity.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 4: MACHINE LEARNING CLOCK (12 - 16s) -->
+      <div id="scene4" class="scene">
+        <div class="flex-row">
+          <div class="flex-col" style="flex: 1;">
+            <div class="badge">
+              <div class="badge-dot"></div>
+              Machine Learning Age Clock
+            </div>
+            <h2 style="font-size: 50px; font-weight: 800; line-height: 1.15; margin-bottom: 16px;">
+              Cross-Cohort Generalization Benchmark
+            </h2>
+            <p style="font-size: 18px; color: #94a3b8; line-height: 1.5; margin-bottom: 24px;">
+              Regularized Elastic Net trained with strictly leak-free 5-fold cross-validation on RNA-seq, and evaluated on independent whole skin without refitting.
+            </p>
+            <div style="display: flex; gap: 20px;">
+              <div class="glass-card" style="flex: 1; padding: 22px;">
+                <div class="metric-value" style="font-size: 42px;">0.706</div>
+                <div class="metric-label" style="font-size: 13px;">Pearson Correlation (p = 1.3e-13)</div>
+              </div>
+              <div class="glass-card" style="flex: 1; padding: 22px;">
+                <div class="metric-value" style="font-size: 42px; color: #10b981;">10.67y</div>
+                <div class="metric-label" style="font-size: 13px;">Cross-Val MAE (vs 16.5y baseline)</div>
+              </div>
+            </div>
+            <div class="glass-card" style="margin-top: 16px; padding: 18px 24px; background: rgba(56, 189, 248, 0.05); border-color: rgba(56, 189, 248, 0.2);">
+              <small style="color: #cbd5e1; font-size: 15px;">
+                💡 <b>Honest Translational Insight:</b> Model transferability highlights the critical necessity of cell-type deconvolution when moving from in vitro fibroblasts to in vivo tissue.
+              </small>
+            </div>
+          </div>
+          <div class="img-frame" data-layout-allow-overflow="true" style="flex: 1.1; max-height: 580px; display: flex; align-items: center; justify-content: center;">
+            <img src="assets/fig_ml.png" style="width: 100%; height: auto; display: block;" alt="Elastic Net Age Prediction" />
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 5: OUTRO & CTA (16 - 20s) -->
+      <div id="scene5" class="scene">
+        <div class="badge badge-green">
+          <div class="badge-dot"></div>
+          Open Source Scientific Platform
+        </div>
+        <h1 class="hero-title" style="font-size: 80px; margin-bottom: 16px;">
+          SkinAge Atlas
+        </h1>
+        <p class="hero-sub" style="font-size: 26px; max-width: 1100px; margin-bottom: 40px;">
+          12 Publication-Quality Figures • Interactive Plotly & Streamlit Dashboard • Zero Data Leakage
+        </p>
+
+        <div class="glass-card" style="padding: 24px 60px; border-radius: 9999px; border: 2px solid #38bdf8; box-shadow: 0 0 50px rgba(56, 189, 248, 0.3);">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 700; color: #ffffff;">
+            github.com/ypadhi27/SkinAge-Atlas
+          </span>
+        </div>
+
+        <p style="margin-top: 36px; font-size: 18px; color: #94a3b8; font-weight: 600;">
+          Bioinformatics • Drug Target Discovery • Clinical & Translational Biomarkers
+        </p>
+      </div>
+
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      // Scene 1: 0 - 4s
+      tl.fromTo("#scene1", { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.7, ease: "power2.out" }, 0);
+      tl.to("#scene1", { opacity: 0, scale: 1.05, duration: 0.5, ease: "power2.in" }, 3.5);
+
+      // Scene 2: 4 - 8s
+      tl.fromTo("#scene2", { opacity: 0, x: 50 }, { opacity: 1, x: 0, duration: 0.7, ease: "power2.out" }, 4.0);
+      tl.to("#scene2", { opacity: 0, x: -50, duration: 0.5, ease: "power2.in" }, 7.5);
+
+      // Scene 3: 8 - 12s
+      tl.fromTo("#scene3", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 8.0);
+      tl.to("#scene3", { opacity: 0, y: -40, duration: 0.5, ease: "power2.in" }, 11.5);
+
+      // Scene 4: 12 - 16s
+      tl.fromTo("#scene4", { opacity: 0, scale: 0.96 }, { opacity: 1, scale: 1, duration: 0.7, ease: "power2.out" }, 12.0);
+      tl.to("#scene4", { opacity: 0, scale: 1.04, duration: 0.5, ease: "power2.in" }, 15.5);
+
+      // Scene 5: 16 - 20s
+      tl.fromTo("#scene5", { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.8, ease: "power2.out" }, 16.0);
+      tl.to("#scene5", { opacity: 1, duration: 3.2 }, 16.8);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

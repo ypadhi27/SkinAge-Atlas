@@ -1,0 +1,5 @@
+Can transcriptomics predict human biological age, and does a clock trained on in vitro fibroblasts hold up in real tissue?
+
+Introducing SkinAge Atlas: a leak-free computational biology platform analyzing 124 human donors and 20,798 genes across RNA-seq and paired microarray cohorts, backed by 12 publication figures, GSEA pathway discovery, and an interactive Plotly dashboard.
+
+Code & interactive app: https://github.com/ypadhi27/SkinAge-Atlas
